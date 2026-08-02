@@ -1,0 +1,29 @@
+study,study_label,n_comparisons,correlation
+system_threat,Craig and Richeson (2014),16,-0.6325729284641046
+jacobsenS7,"Jacobsen, Snyder and Saultz (2014)",16,-0.48830029896953325
+caprarielloS2,Caprariello and Reis (2013),16,-0.35852393268900556
+frame_breadth,Hopkins and Mummolo (2017),16,-0.31544238870406893
+shaferS9,Shafer (2017),16,-0.2851723461893371
+piazzaS8,Piazza (2015),16,-0.24196891963186812
+polarization,Levendusky and Malhotra (2015),16,-0.19400505458561002
+superordinate_id,Transue (2007),7,-0.15611956379603964
+elite_endorsements,Nicholson (2012),12,-0.12534043065005146
+turagaS11,Turaga (2010),16,-0.11215377836899966
+pedullaS18,Pedulla (2014),15,0.010594338356772226
+thompsonS10,Thompson and Schlehofer (2014),16,0.13147469350314564
+flavinS4,Flavin (2011),16,0.17892615891485406
+expert_economists,Johnston and Ballard (2016),16,0.24213392985211024
+patriot_act,Chong and Druckman (2010),13,0.266406792577733
+converseS16,Epley et al. (2009),10,0.2934776025450544
+brandtS1,Brandt (2013),13,0.3028831335092149
+berganS20,Bergan (2012),16,0.33403516211008716
+mental_illness,"McGinty, Webster and Barry (2013)",16,0.3559388090743205
+immigration,Brader (2005),12,0.401632692887495
+parmerS15,Parmer (2011),16,0.41908837798907383
+wallaceS12,Wallace (2011),16,0.48172122242402576
+free_trade,Hiscox (2006),16,0.5431234941607836
+death_penalty,Peffley and Hurwitz (2007),13,0.6217746344846806
+melloS6,Murtagh et al. (2012),10,0.6519578369763978
+dennyS17,Denny (2012),16,0.7866630509254976
+gashS5,Gash and Murakami (2009),16,0.8683963636639636
+all,All comparisons pooled,393,0.7221974781662291

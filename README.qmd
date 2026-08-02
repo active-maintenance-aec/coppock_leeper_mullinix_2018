@@ -1,0 +1,432 @@
+---
+title: "Reproducibility Report: Coppock, Leeper and Mullinix (2018)"
+subtitle: "Generalizability of Heterogeneous Treatment Effect Estimates Across Samples"
+format:
+  gfm:
+    output-file: README.md
+    toc: true
+  pdf:
+    output-file: coppock_leeper_mullinix_2018_report.pdf
+    toc: true
+    number-sections: true
+    keep-tex: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(here)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+here::i_am("README.qmd")
+
+# kableExtra styling and the vector figure are LaTeX-only; the GitHub README
+# build takes plain pipe tables and the PNG copy of the figure.
+latex_out <- knitr::is_latex_output()
+
+gt <- read_csv(here("ground_truth", "coppock_leeper_mullinix_2018_ground_truth.csv"),
+               show_col_types = FALSE)
+table_1 <- read_csv(here("maintained", "output", "table_1_within_study_correspondence.csv"),
+                    show_col_types = FALSE)
+table_2 <- read_csv(here("maintained", "output", "table_2_across_study_correspondence.csv"),
+                    show_col_types = FALSE)
+table_a <- read_csv(here("maintained", "output", "table_a_cate_estimates.csv"),
+                    show_col_types = FALSE)
+study_ns <- read_csv(here("maintained", "output", "study_ns.csv"), show_col_types = FALSE)
+text_summary <- read_csv(here("maintained", "output", "text_correspondence_summary.csv"),
+                         show_col_types = FALSE)
+correlations <- read_csv(here("maintained", "output", "text_within_study_correlation.csv"),
+                         show_col_types = FALSE)
+manifest <- read_csv(here("original_manifest.csv"), show_col_types = FALSE)
+
+value_of <- function(q) text_summary$value[text_summary$quantity == q]
+
+n_claims <- nrow(gt)
+n_with_paper_value <- sum(!is.na(gt$value_paper))
+n_match_script <- sum(gt$match == 1, na.rm = TRUE)
+n_match_rewrite <- sum(gt$match_rewrite == 1, na.rm = TRUE)
+n_mismatch_rewrite <- sum(gt$match_rewrite == 0, na.rm = TRUE)
+
+appendix_rows <- nrow(table_a)
+appendix_cells <- 7 * appendix_rows
+n_cells_differing <- sum(table_a$n != table_a$n_deposit_formula)
+
+within_study <- correlations |> filter(study != "all")
+```
+
+*Drafted by Claude Opus 5 under the supervision of Alex Coppock.*
+
+This repository holds the actively maintained replication code for Coppock, Leeper and Mullinix (2018), together with the reproducibility report that documents what the original archive did and did not do. It is part of a program applying the maintenance proposal in Peer, Orr and Coppock (2021, *PS: Political Science & Politics*, doi [10.1017/S1049096521000366](https://doi.org/10.1017/S1049096521000366)) to a set of published archives.
+
+| | |
+|---|---|
+| Article | [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115) |
+| Replication archive | [10.7910/DVN/4WNGEJ](https://doi.org/10.7910/DVN/4WNGEJ) |
+| Source of the 16 Mullinix et al. study pairs | [10.1017/XPS.2015.19](https://doi.org/10.1017/XPS.2015.19) |
+| Source of the 11 Coppock study pairs | [10.1017/psrm.2018.10](https://doi.org/10.1017/psrm.2018.10) |
+| Pre-analysis plans | None; the paper is a reanalysis of existing experiments |
+
+**The data are not redistributed here.** The deposit lives at Harvard Dataverse and that is the only copy this repository points at. `download_original.R` fetches it and verifies every file; `original_manifest.csv` records the Dataverse file identifiers, the directory each file belongs in, and two checksums per file: the MD5 of the bytes Dataverse serves, which is what this code was written against, and the MD5 Dataverse publishes. Here the two agree for all `r nrow(manifest)` files. They do not always, so the script verifies against the served bytes and reports any disagreement. It also refuses to proceed if `original/` holds anything the deposit does not, which is how a directory quietly acquires output from a run rather than from the archive. Either way the exact bytes are pinned in version control even though the bytes themselves are not.
+
+**Repository layout.** `maintained/` is the maintained rewrite: one script per published table or figure, writing to `output/`, which is committed so a reader can compare a fresh run against it without downloading anything. `ground_truth/` ties every published number to the code that produces it, and holds the appendix values as read off the published PDF. `original/` is created by the download script and is deliberately absent from the repository. This README is the reproducibility report, also available as a PDF in `report/`.
+
+**License.** CC0 1.0 Universal, matching the terms of the deposit this repository maintains, so nothing in the chain is more restrictive than the archive itself. See `LICENSE`.
+
+**To reproduce.** Clone or download the repository, open `coppock_leeper_mullinix_2018.Rproj`, and run:
+
+``` r
+source("run_all.R")
+```
+
+That fetches the deposited archive from Dataverse, verifies its `r nrow(manifest)` checksums, and produces every table and figure into `maintained/output/`. It takes about half a minute. Individual scripts can be run on their own, in the order `run_all.R` uses, since each reads its inputs from `maintained/output/`.
+
+Required packages: tidyverse, estimatr, broom, deming, lmtest, knitr, kableExtra, here. Paths resolve through `here`, so nothing depends on the working directory and the scripts work equally well under `Rscript` outside RStudio. A successful run overwrites `maintained/output/`, which is committed: **`git diff` on that folder is the reproduction check**, and the CSV and PNG output comes back byte-identical. The two PDF figures always show as changed, because a PDF records the time it was written; compare their PNG twins instead.
+
+## Paper Overview
+
+**Citation**: Coppock, A., Leeper, T. J. and Mullinix, K. J. (2018). Generalizability of heterogeneous treatment effect estimates across samples. *Proceedings of the National Academy of Sciences*, 115(49), 12441--12446.
+
+**Research question**: Sample average treatment effects estimated on nationally representative samples and on online convenience samples correspond closely. Two things could explain that: treatment effects are largely homogeneous, so who is in the sample does not matter, or they are heterogeneous in ways unrelated to who selects into a convenience sample. Which is it?
+
+**Design**: A reanalysis of 27 pairs of survey experiments, each run once on a nationally representative GfK/TESS sample and once on Amazon Mechanical Turk under an identical protocol. Sixteen pairs come from Mullinix, Leeper, Druckman and Freese (2015) and eleven from Coppock (2018). Within each version of each study, conditional average treatment effects are estimated by difference-in-means for 16 subgroups defined by age, education, gender, ideology, partisanship and race, coarsened to at most three categories each, with HC2 standard errors. The original and replication CATEs are then compared in three ways: a Deming regression of one on the other, which is an errors-in-variables fit that takes the estimated standard errors on both axes and gets its confidence interval from the jackknife; a joint F test against the null of no difference in the pattern of heterogeneity by sample; and a direct significance comparison of each pair of CATEs.
+
+**Main finding**: Across `r value_of("Comparison opportunities")` subgroup comparisons the correspondence is strong. The across-study Deming slopes run from `r sprintf("%.2f", value_of("Smallest across-study slope"))` to `r sprintf("%.2f", value_of("Largest across-study slope"))`, all positive, and all but one confidence interval covers 1. The difference between the two versions is significant `r value_of("Difference-in-CATEs significant")` times, `r round(100 * value_of("Share of comparisons with a significant difference"))` per cent, and in no case do the two point in opposite directions while both are distinguishable from zero. Within studies, the CATEs cluster tightly around the study's overall effect, so there is little heterogeneity for sample composition to interact with. The conclusion is that treatment effect homogeneity, rather than heterogeneity orthogonal to selection, explains why convenience samples give answers so close to representative ones.
+
+---
+
+## Summary
+
+Two questions, answered before the detail.
+
+### Does the deposited archive run?
+
+Not as deposited, and the reason is entirely deprecation. Five of its eight scripts stop with an error in a clean R session, and every one of the five is a one-line fix that no published number depends on.
+
+```{r archive-failures}
+failures <- tibble::tribble(
+  ~Script, ~Failure, ~Fix,
+  "CLM_study_labels.R", "`write_rds(x, path = )`", "`file = `",
+  "CLM_estimate_CATEs.R", "`write_rds(x, path = )`", "`file = `",
+  "CLM_f_tests.R", "`write_rds(x, path = )`", "`file = `",
+  "CLM_appendix.R", "`read_rds(path = )`", "drop the argument name",
+  "CLM_tables.R", "column dropped by an earlier `transmute()`", "move the diagnostic line above it"
+)
+k <- kable(failures, booktabs = TRUE, caption = "Every way the deposited archive fails in a current R session")
+if (latex_out) {
+  k <- k |> kable_styling(latex_options = c("striped", "hold_position", "scale_down"))
+}
+k
+```
+
+The `path` argument of `read_rds()` and `write_rds()` was soft-deprecated in readr 1.4 and is now gone: `write_rds()` reports a missing `file` argument and `read_rds()` reports an unused one. The fifth failure is different in kind and worth naming, because it is the shape of bug that only ever appears once someone else runs the code. `CLM_tables.R` overwrites `group_deming` with a `transmute()` that keeps three formatted columns, then asks the overwritten object for the minimum and maximum of `estimate`, a column that no longer exists. In the session it was written in, `group_deming` still held the estimate; from a clean start it does not. The line is a diagnostic that prints an in-text number and nothing downstream depends on it, so moving it two lines earlier is the whole repair.
+
+**With those five edits the archive reproduces itself exactly.** Running all eight scripts in order from a directory holding only the deposited data files and scripts regenerates `group_table.tex`, `study_table.tex` and `appendix_tables.tex` byte for byte against the deposited copies, and regenerates the two derived data objects, `CLM_scatter_df.rds` and `CLM_f_tests_df.rds`, to within 1e-13. Nothing here is stochastic. The archive calls no random number generator at all, so the sampler change in R 3.6 does not touch it, and the two `set.seed(343)` calls in `CLM_tables.R` have no effect: `deming()` gets its confidence interval from the jackknife, which is deterministic, and returns the same slope, standard error and interval at any seed.
+
+Two smaller observations. The deposited `CLM_results.rds` was saved as a grouped data frame in a format dplyr dropped in version 0.8, so current dplyr refuses to group it until it has been passed through `ungroup()`; the object's contents are intact and the archive's own scripts never hit the problem because they regenerate it. And `CLM_figures.R` calls `library(coefplot)` without ever using the package, which matters only because that call is what attaches ggplot2, the package it does use.
+
+### Does the maintained rewrite reproduce the paper?
+
+Every number the article prints reproduces from the deposited code. Two columns of the appendix tables are wrong at source, and the rewrite reports the correct quantity rather than carrying the error forward.
+
+```{r summary-table}
+verdict <- tibble::tribble(
+  ~Component, ~Verdict,
+  "Table 1 (27 study pairs, 8 cells each)", "216 of 216 cells reproduce",
+  "Table 2 (16 subgroups, 5 cells each)", "80 of 80 cells reproduce",
+  "Figures 1 and 2", "All 393 plotted comparisons reproduce",
+  "Appendix Tables 1 to 27, estimates", "All 3,935 CATE, SE, p-value and interval cells reproduce",
+  "Appendix Tables 1 to 27, N column", "Reproduces; 98 of 787 cells are one to three observations short",
+  "Appendix Tables 1 to 27, Prop column", "Reproduces; every one of the 787 is the share divided by the number of regression terms",
+  "In-text quantities", "17 of 17 reproduce"
+)
+k <- kable(verdict, booktabs = TRUE, caption = "Reproduction verdict by component")
+if (latex_out) {
+  k <- k |>
+    kable_styling(latex_options = c("striped", "hold_position", "scale_down")) |>
+    column_spec(2, width = "9cm")
+}
+k
+```
+
+The ground truth records `r n_claims` claims, `r n_with_paper_value` of which carry a value the article or its appendix prints. **All `r n_with_paper_value` are reproduced by the deposited code.** `r n_match_rewrite` are also reproduced by the rewrite; the remaining `r n_mismatch_rewrite` are the N and Prop columns of the appendix tables, where the rewrite deliberately reports the correct quantity instead. Those two corrections are set out under Errata below.
+
+Nothing in the paper's argument turns on either column. The estimates, standard errors, p-values and confidence intervals in the same tables are untouched, both main tables are untouched, and both figures are untouched.
+
+One further observation concerns not a number but what a number counts. Table 1's `Original N` and `Mturk N` columns, which sum to the abstract's `r format(value_of("Total survey responses"), big.mark = ",")` individual survey responses, mean different things in the two halves of the table. For the eleven studies from Coppock (2018) they are the observations the estimates use. For the sixteen from Mullinix et al. (2015) they are the number of rows in the deposited file, which is the whole survey wave rather than the respondents assigned to that experiment, and the same MTurk waves are counted once per study that drew on them. Bergan (2012) is listed at 1,206 and 1,913; the subgroup estimates use 396 and 587. The figure is a faithful description of the deposit and reproduces exactly, and the paper's claim about it is that Table 1 gives "the sample sizes used in the analyses reported here". For the sixteen it does not. `maintained/output/study_ns.csv` carries both counts for every study.
+
+---
+
+## Original Archive Reproducibility
+
+**Archive source**: Harvard Dataverse, doi [10.7910/DVN/4WNGEJ](https://doi.org/10.7910/DVN/4WNGEJ), `r nrow(manifest)` files in a single `replication_archive/` directory: 27 data files, 8 R scripts, and 11 output files the scripts themselves produce.
+
+The deposit ships a README naming every data file and pairing each script with the output it writes. Both halves of that description are accurate, which is not the norm: all 27 data files are present under the names given, all 8 scripts exist, and each writes what the README says it writes.
+
+The dependency chain runs `CLM_study_labels.R` and `CLM_study_summaries.R` first, then `CLM_estimate_CATEs.R`, which does the estimation and saves the two objects everything downstream reads, then `CLM_f_tests.R`, and finally the three scripts that produce output: `CLM_figures.R`, `CLM_tables.R` and `CLM_appendix.R`. `CLM_in_text_figures.R` prints the paper's in-text quantities to the console without writing anything, so those numbers exist in the deposit only as the console output of a script nobody has run.
+
+Because the deposit also ships the intermediate objects, three of its scripts appear to succeed on a first run even though the scripts that produce their inputs have failed. Running `CLM_figures.R` in the deposit as downloaded produces both figures without error, using the deposited `CLM_scatter_df.rds` rather than one this run computed. The distinction is invisible unless the directory is stripped back to data and code, which is how the reproduction above was done.
+
+Two composition risks that bite other archives of this vintage do not bite this one. `lmtest::waldtest()` is called on `lm_robust` objects 54 times, and current `estimatr` exports a `vcov` method that `waldtest()` will find where it once fell through to a classical F test; here the regenerated p-values match the deposited ones to 6e-14, so the test being performed has not changed. And the packages the archive leans on are all still maintained: `deming` was last released in 2024, `reshape2` and `coefplot` in 2025.
+
+---
+
+## Errata
+
+The maintained rewrite corrects two columns of the appendix tables. Neither correction changes an estimate, and neither touches the main text.
+
+**The N column is the residual degrees of freedom plus two.** `CLM_appendix.R` sets `n = df + 2`, which is the number of observations only when the regression has exactly two terms, an intercept and treatment. Twenty-three of the 27 studies do, and their N columns are right. Four do not, because their subgroup regressions carry an extra regressor: Transue (2007) adds a blocking factor, Nicholson (2012) adds party identification for the subgroups not defined by party, McGinty, Webster and Barry (2013) adds a policy indicator and Hiscox (2006) adds a valence indicator. Those four lose one, one, two and three observations per cell respectively, `r n_cells_differing` cells in all. The rewrite reports the number of observations the fit actually used.
+
+**The Prop column is the share divided by the number of regression terms.** The appendix says the column "describes what proportion of the subjects in a given experiment belong to the associated covariate class", and the three age shares in a table should therefore sum to one. In the published tables they sum to one half, or to one third, one quarter or one fifth in the four studies above. The denominator is a sum taken over every row of the fitted results rather than over the treatment coefficients alone, so each subgroup is counted once per regression term. The rewrite divides by the sum over subgroups.
+
+Both corrections are recorded in the ground truth as `match_rewrite = 0` with `defect_locus = archive`, and `maintained/output/table_a_cate_estimates.csv` carries the deposit's own version of each column alongside the corrected one, so the published values remain checkable. Under the deposit's formulas all 787 N cells and all 787 Prop cells reproduce exactly.
+
+---
+
+## Ground Truth
+
+`ground_truth/coppock_leeper_mullinix_2018_ground_truth.csv` has `r n_claims` rows. Every published float is covered, and the appendix is covered cell by cell.
+
+```{r gt-coverage}
+coverage <- gt |>
+  mutate(group = case_when(
+    str_starts(table_figure, "Appendix") ~ "Appendix Tables 1 to 27",
+    str_starts(table_figure, "Figure") ~ "Figures 1 and 2",
+    table_figure %in% c("Table 1", "Table 2") ~ table_figure,
+    .default = "In-text quantities"
+  )) |>
+  summarize(
+    Claims = n(),
+    `With a published value` = sum(!is.na(value_paper)),
+    `Archive reproduces` = sum(match == 1, na.rm = TRUE),
+    `Rewrite reproduces` = sum(match_rewrite == 1, na.rm = TRUE),
+    .by = group
+  ) |>
+  rename(Component = group)
+k <- kable(coverage, booktabs = TRUE, caption = "Ground truth coverage")
+if (latex_out) {
+  k <- k |> kable_styling(latex_options = c("striped", "hold_position"))
+}
+k
+```
+
+`value_paper` comes only from the published documents. Table 1 and Table 2 were transcribed from the typeset pages and cross-checked against a rendered image of each page rather than a text extraction, since a multi-column table read as text is easy to mis-map by one column. The `r format(appendix_cells, big.mark = ",")` appendix cells were read off the appendix PDF into `ground_truth/published_appendix_values.csv`, which is committed, and a rendered page was checked against the parse. `value_script` is read out of the deposit's own `study_table.tex`, `group_table.tex` and `appendix_tables.tex` and out of its two derived data objects. `value_rewrite` is read out of `maintained/output/`. No published number is an input to any computation in `maintained/`.
+
+Three rows carry no published value. Figures 1 and 2 print no numbers, and the sentence that the within-study CATEs are "mostly uncorrelated" states no quantity. That last one is a claim about 27 correlations rather than one, so it is checked against the study-level data:
+
+```{r correlations}
+corr_summary <- tibble::tribble(
+  ~Quantity, ~Value,
+  "Lowest within-study correlation", sprintf("%.2f", min(within_study$correlation)),
+  "Median within-study correlation", sprintf("%.2f", median(within_study$correlation)),
+  "Highest within-study correlation", sprintf("%.2f", max(within_study$correlation)),
+  "Study pairs with a positive correlation", paste0(sum(within_study$correlation > 0), " of ", nrow(within_study)),
+  "Study pairs above 0.50", paste0(sum(within_study$correlation > 0.5), " of ", nrow(within_study)),
+  "All 393 comparisons pooled", sprintf("%.2f", correlations$correlation[correlations$study == "all"])
+)
+k <- kable(corr_summary, booktabs = TRUE,
+           caption = "Correlation of original and replication CATEs")
+if (latex_out) {
+  k <- k |> kable_styling(latex_options = c("striped", "hold_position"))
+}
+k
+```
+
+The characterisation holds. The within-study correlations are centred near zero and scatter widely on either side, which is what "mostly uncorrelated" should mean, and the contrast with the pooled figure of `r sprintf("%.2f", correlations$correlation[correlations$study == "all"])` is exactly the paper's point: across studies the CATEs correspond closely, within a study they barely move.
+
+---
+
+## Maintained Rewrite
+
+Ten scripts in `maintained/`, one shared `helpers.R`, and every output in `maintained/output/`.
+
+```{r rewrite-scripts}
+scripts <- tibble::tribble(
+  ~Script, ~Produces,
+  "helpers.R", "Packages, study labels, subgroup labels, and the CATE and Deming helpers",
+  "estimate_cates.R", "cate_estimates.csv, cate_scatter.csv",
+  "f_tests.R", "f_tests.csv",
+  "study_ns.R", "study_ns.csv",
+  "table_1_within_study_correspondence.R", "table_1_within_study_correspondence.csv",
+  "table_2_across_study_correspondence.R", "table_2_across_study_correspondence.csv",
+  "table_a_cate_estimates.R", "table_a_cate_estimates.csv",
+  "figure_1_across_study_correspondence.R", "figure_1_across_study_correspondence.pdf, .png, .csv",
+  "figure_2_within_study_correspondence.R", "figure_2_within_study_correspondence.pdf, .png, .csv",
+  "text_correspondence_summary.R", "text_correspondence_summary.csv",
+  "text_within_study_correlation.R", "text_within_study_correlation.csv"
+)
+k <- kable(scripts, booktabs = TRUE, caption = "The maintained rewrite")
+if (latex_out) {
+  k <- k |>
+    kable_styling(latex_options = c("striped", "hold_position", "scale_down")) |>
+    column_spec(2, width = "8cm")
+}
+k
+```
+
+The substitutions the rewrite makes:
+
+```{r substitutions}
+subs <- tibble::tribble(
+  ~Original, ~Replacement, ~Reason,
+  "`gather()`", "`pivot_longer(values_transform = )`", "Retired. The covariate columns are a mix of factor and numeric across studies, which `gather()` coerced silently with a warning; the transform makes the coercion explicit",
+  "`do(tidy(...))`", "`reframe(tidy(...))`", "`do()` is superseded",
+  "`reshape2::melt()` and `dcast()`", "`pivot_wider()`", "reshape2 is superseded",
+  "`data_frame()`", "`tibble()`", "Deprecated since tibble 1.1",
+  "`write_rds(path = )`, `read_rds(path = )`", "Write CSV to `output/`", "The argument is gone, and a text output can be diffed",
+  "`xtable()` plus `sink()`", "`write_csv()`", "`sink()` writes to a hardcoded path and cannot be checked; a CSV can be compared cell by cell",
+  "`library(coefplot)`", "`library(ggplot2)`", "The archive used coefplot only as a way of attaching ggplot2",
+  "`geom_segment()` for interval bars", "`geom_linerange()`", "The current idiom for a confidence interval on a scatter"
+)
+k <- kable(subs, booktabs = TRUE, caption = "Substitutions")
+if (latex_out) {
+  k <- k |>
+    kable_styling(latex_options = c("striped", "hold_position", "scale_down")) |>
+    column_spec(1, width = "4cm") |>
+    column_spec(2, width = "3.5cm") |>
+    column_spec(3, width = "7cm")
+}
+k
+```
+
+`deming::deming()` is kept. It is the only implementation of the estimator the paper uses, it is actively maintained, and its jackknife interval is what the paper describes.
+
+The rewrite also adds three things the deposit does not carry. `f_tests.csv` records the F statistic and both degrees of freedom rather than the p-value alone, so the test is inspectable. `study_ns.csv` records the observations that enter the estimates alongside the sample sizes Table 1 prints. And each figure script writes a CSV of the values it plots, because two PDFs never compare equal and a figure that writes no numbers cannot be checked at all.
+
+---
+
+## Table 1: Within-Study Correspondence
+
+```{r table-1}
+t1 <- table_1 |>
+  transmute(Study = study_label, `Original N` = original_n, `MTurk N` = mt_n,
+            `Slope (SE)` = slope_display, `95% CI` = ci_display,
+            `N comparisons` = n_comparisons,
+            `Joint F test p` = sprintf("%.2f", f_p_value))
+k <- kable(t1, booktabs = TRUE, align = "lrrrrrr",
+           caption = "Table 1 as the rewrite produces it. Every cell matches the published table.")
+if (latex_out) {
+  k <- k |> kable_styling(latex_options = c("striped", "hold_position", "scale_down"))
+}
+k
+```
+
+---
+
+## Table 2: Across-Study Correspondence
+
+```{r table-2}
+t2 <- table_2 |>
+  transmute(`Covariate class` = covariate_class, `Slope (SE)` = slope_display,
+            `95% CI` = ci_display, `N comparisons` = n_comparisons)
+k <- kable(t2, booktabs = TRUE, align = "lrrr",
+           caption = "Table 2 as the rewrite produces it. Every cell matches the published table.")
+if (latex_out) {
+  k <- k |> kable_styling(latex_options = c("striped", "hold_position"))
+}
+k
+```
+
+The one interval that excludes 1 is Conservative, at `r table_2$ci_display[table_2$covariate_class == "Conservative"]`, which is what the paper says.
+
+---
+
+## Figure Verification
+
+Neither figure prints a number, so the check is against the values plotted. Both figure scripts write the coordinates of every point and every interval limit to CSV, and all `r value_of("Comparison opportunities")` comparisons agree with the deposit's own `CLM_scatter_df.rds` to better than 1e-12.
+
+```{r figure-1, fig.cap="Figure 1: across-study correspondence of CATEs, as the rewrite produces it.", out.width="100%"}
+knitr::include_graphics(
+  if (latex_out) {
+    here("maintained", "output", "figure_1_across_study_correspondence.pdf")
+  } else {
+    here("maintained", "output", "figure_1_across_study_correspondence.png")
+  }
+)
+```
+
+```{r figure-2, fig.cap="Figure 2: within-study correspondence of CATEs, as the rewrite produces it.", out.width="100%"}
+knitr::include_graphics(
+  if (latex_out) {
+    here("maintained", "output", "figure_2_within_study_correspondence.pdf")
+  } else {
+    here("maintained", "output", "figure_2_within_study_correspondence.png")
+  }
+)
+```
+
+---
+
+## In-Text Quantities
+
+```{r in-text}
+decimals_shown <- function(x) {
+  txt <- str_remove(formatC(x, format = "fg", digits = 15, flag = "#"), "0+$")
+  if_else(str_detect(txt, "\\."), nchar(str_remove(txt, "^.*\\.")), 0L)
+}
+
+intext <- gt |>
+  filter(table_figure %in% c("Abstract", "Methods and Materials", "Results"),
+         !is.na(value_paper)) |>
+  mutate(digits = map_int(value_paper, decimals_shown)) |>
+  transmute(Quantity = claim,
+            Published = map2_chr(value_paper, digits,
+                                 ~ formatC(.x, format = "f", digits = .y, big.mark = ",")),
+            Rewrite = map2_chr(value_rewrite, pmax(digits, 2),
+                               ~ formatC(.x, format = "f", digits = .y, big.mark = ",")),
+            Match = if_else(match_rewrite == 1, "yes", "no"))
+k <- kable(intext, booktabs = TRUE, align = "lrrl",
+           caption = "Every quantity the article states in prose")
+if (latex_out) {
+  k <- k |>
+    kable_styling(latex_options = c("striped", "hold_position", "scale_down")) |>
+    column_spec(1, width = "9cm")
+}
+k
+```
+
+---
+
+## Rewrite Verification
+
+The rewrite is deterministic. Running `run_all.R` twice in succession leaves every CSV and every PNG in `maintained/output/` byte-identical; the only files that change are the two figure PDFs, and comparing them with the timestamp stripped shows no other difference. Nothing in the pipeline draws a random number, so there is no seed to set and no sampler version to pin.
+
+The estimates themselves were checked against the deposit rather than only against the paper, which is a stronger test because the deposit carries more digits than the printed tables do:
+
+```{r verification}
+checks <- tibble::tribble(
+  ~Check, ~Result,
+  "1,768 CATE rows against CLM_results.rds", "Agree to 1.1e-13",
+  "393 comparisons against CLM_scatter_df.rds", "Agree to 1.4e-13",
+  "27 joint F tests against CLM_f_tests_df.rds", "Agree to 6.4e-14",
+  "54 sample sizes against CLM_study_ns_df.rds", "Identical",
+  "Table 1 and Table 2 against the published pages", "296 of 296 cells",
+  "Appendix estimation cells against the published appendix", "3,935 of 3,935 cells",
+  "run_all.R run twice", "Byte-identical apart from two PDF timestamps"
+)
+k <- kable(checks, booktabs = TRUE, caption = "Verification of the rewrite")
+if (latex_out) {
+  k <- k |>
+    kable_styling(latex_options = c("striped", "hold_position", "scale_down")) |>
+    column_spec(1, width = "8cm")
+}
+k
+```
+
+---
+
+## R Environment
+
+```{r environment}
+pkgs <- c("tidyverse", "dplyr", "tidyr", "readr", "purrr", "stringr", "ggplot2",
+          "estimatr", "broom", "deming", "lmtest", "here", "knitr", "kableExtra")
+env <- tibble(
+  Package = pkgs,
+  Version = map_chr(pkgs, ~ as.character(packageVersion(.x)))
+)
+k <- kable(env, booktabs = TRUE,
+           caption = paste0("Package versions under ", R.version.string))
+if (latex_out) {
+  k <- k |> kable_styling(latex_options = c("striped", "hold_position"))
+}
+k
+```

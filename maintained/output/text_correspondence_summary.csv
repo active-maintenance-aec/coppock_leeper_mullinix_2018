@@ -1,0 +1,18 @@
+quantity,value
+Study pairs,27
+Separate experiments,54
+Total survey responses,101745
+Distinct demographic subgroups,16
+Comparison opportunities,393
+Difference-in-CATEs significant,59
+Share of comparisons with a significant difference,0.15012722646310434
+Sign disagreements with both versions significant,0
+CATEs significant in the original version,156
+"Of those, significant in the MTurk version",118
+CATEs indistinguishable from zero in the original version,237
+"Of those, indistinguishable in the MTurk version",158
+Overall significance match rate,0.7022900763358778
+Smallest across-study slope,0.7132529452130822
+Largest across-study slope,1.008494917557303
+Across-study slopes whose interval excludes one,1
+F tests failing to reject at 0.05,25
