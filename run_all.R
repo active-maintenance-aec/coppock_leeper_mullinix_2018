@@ -32,6 +32,17 @@ source(here::here("maintained", "figure_2_within_study_correspondence.R"))
 source(here::here("maintained", "text_correspondence_summary.R"))
 source(here::here("maintained", "text_within_study_correlation.R"))
 
+# Figure timestamps ----
+# R's pdf() device stamps a wall-clock /CreationDate and /ModDate into every figure it
+# writes, and those two fields are the only reason two runs of this pipeline produce
+# differing files. Blanking them lets the determinism check cover every file the
+# pipeline writes rather than all but the figures.
+source(here::here("maintained", "helpers.R"))
+walk(
+  list.files(here::here("maintained", "output"), pattern = "\\.pdf$", full.names = TRUE),
+  blank_pdf_timestamps
+)
+
 # Ground truth ----
 # Rebuilds the comparison table from the outputs above, so it cannot go stale.
 source(here::here("ground_truth", "build_ground_truth.R"))
