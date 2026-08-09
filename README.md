@@ -16,6 +16,8 @@
   Correspondence](#table-2-across-study-correspondence)
 - [Figure Verification](#figure-verification)
 - [In-Text Quantities](#in-text-quantities)
+- [The Extraction and the Two
+  Instruments](#the-extraction-and-the-two-instruments)
 - [Rewrite Verification](#rewrite-verification)
 - [R Environment](#r-environment)
 
@@ -54,11 +56,17 @@ themselves are not.
 **Repository layout.** `maintained/` is the maintained rewrite: one
 script per published table or figure, writing to `output/`, which is
 committed so a reader can compare a fresh run against it without
-downloading anything. `ground_truth/` ties every published number to the
-code that produces it, and holds the appendix values as read off the
-published PDF. `original/` is created by the download script and is
+downloading anything, plus `in_text_claims.R`, which recomputes every
+quantity the article states in prose and prints it beside the sentence
+that states it. `ground_truth/` ties every published number to the code
+that produces it: the comparison table itself, the appendix values as
+read off the published PDF, and `published_claims.csv`, the
+token-by-token extraction of the article and appendix that decides what
+coverage means. `original/` is created by the download script and is
 deliberately absent from the repository. This README is the
-reproducibility report, also available as a PDF in `report/`.
+reproducibility report, also available as a PDF in `report/`;
+`coppock_leeper_mullinix_2018_errata.pdf` at the root corrects one
+sentence of the published appendix.
 
 **License.** CC0 1.0 Universal, matching the terms of the deposit this
 repository maintains, so nothing in the chain is more restrictive than
@@ -82,9 +90,11 @@ kableExtra, here. Paths resolve through `here`, so nothing depends on
 the working directory and the scripts work equally well under `Rscript`
 outside RStudio. A successful run overwrites `maintained/output/`, which
 is committed: **`git diff` on that folder is the reproduction check**,
-and the CSV and PNG output comes back byte-identical. The two PDF
-figures always show as changed, because a PDF records the time it was
-written; compare their PNG twins instead.
+and every file in it comes back byte-identical, the two figure PDFs
+included. A PDF ordinarily records the time it was written, which would
+make those two differ on every run for no reason a reader cares about,
+so `run_all.R` blanks the embedded `/CreationDate` and `/ModDate` before
+the ground truth is built.
 
 ## Paper Overview
 
@@ -196,13 +206,13 @@ reports the correct quantity rather than carrying the error forward.
 | Appendix Tables 1 to 27, estimates | All 3,935 CATE, SE, p-value and interval cells reproduce |
 | Appendix Tables 1 to 27, N column | Reproduces; 98 of 787 cells are one to three observations short |
 | Appendix Tables 1 to 27, Prop column | Reproduces; every one of the 787 is the share divided by the number of regression terms |
-| In-text quantities | 17 of 17 reproduce |
+| In-text quantities | 45 prose claims, every one covered by a block |
 
 Reproduction verdict by component
 
-The ground truth records 397 claims, 394 of which carry a value the
-article or its appendix prints. **All 394 are reproduced by the
-deposited code.** 363 are also reproduced by the rewrite; the remaining
+The ground truth records 424 claims, 410 of which carry a value the
+article or its appendix prints. **All 410 are reproduced by the
+deposited code.** 379 are also reproduced by the rewrite; the remaining
 31 are the N and Prop columns of the appendix tables, where the rewrite
 deliberately reports the correct quantity instead. Those two corrections
 are set out under Errata below.
@@ -305,11 +315,38 @@ version of each column alongside the corrected one, so the published
 values remain checkable. Under the deposit’s formulas all 787 N cells
 and all 787 Prop cells reproduce exactly.
 
+**A note correcting the article.** The Prop defect is not only a wrong
+column; the appendix also tells the reader what that column contains,
+and the sentence is not true of the numbers printed beneath it. A
+sentence a reader would quote and be misled by is a correction to the
+published record rather than a note about the deposit, so it is set out
+in `coppock_leeper_mullinix_2018_errata.pdf` at the root of this
+repository, with its numbers computed from the pipeline when the
+document is rendered. It is the only entry, and it changes no
+conclusion.
+
+**Nothing else in the article needs correcting, which is a result rather
+than a silence.** Every number the article and its appendix print
+reproduces from the deposited code at the precision the page carries. No
+ground truth row is `paper_internal`: the article contradicts neither
+its own tables nor its own data anywhere. Of the seven descriptive
+claims that assert something about the estimates without stating a
+number, six hold and the seventh is the Prop sentence above. The two
+shapes of erratum that no failing row would ever surface were looked for
+and are absent: no sentence states the cause of an error elsewhere in
+the paper, and no published number agrees with the deposited code while
+the article misdescribes the method that produced it. The one
+description worth flagging and not correcting is “we estimate all CATEs
+via difference-in-means”, which is exact for 23 of the 27 study pairs
+and, for the other four, describes a fit that also carries another arm
+of the study’s own factorial design or the party identification its
+assignment probabilities depend on.
+
 ------------------------------------------------------------------------
 
 ## Ground Truth
 
-`ground_truth/coppock_leeper_mullinix_2018_ground_truth.csv` has 397
+`ground_truth/coppock_leeper_mullinix_2018_ground_truth.csv` has 424
 rows. Every published float is covered, and the appendix is covered cell
 by cell.
 
@@ -318,7 +355,7 @@ by cell.
 | Table 1 | 216 | 216 | 216 | 216 |
 | Table 2 | 80 | 80 | 80 | 80 |
 | Appendix Tables 1 to 27 | 81 | 81 | 81 | 50 |
-| In-text quantities | 18 | 17 | 17 | 17 |
+| In-text quantities | 45 | 33 | 33 | 33 |
 | Figures 1 and 2 | 2 | 0 | 0 | 0 |
 
 Ground truth coverage
@@ -335,10 +372,22 @@ of the deposit’s own `study_table.tex`, `group_table.tex` and
 `value_rewrite` is read out of `maintained/output/`. No published number
 is an input to any computation in `maintained/`.
 
-Three rows carry no published value. Figures 1 and 2 print no numbers,
-and the sentence that the within-study CATEs are “mostly uncorrelated”
-states no quantity. That last one is a claim about 27 correlations
-rather than one, so it is checked against the study-level data:
+Of the 424 rows, 14 carry no published value. Two are Figures 1 and 2,
+which print no numbers. The other 12 are sentences that describe the
+estimates without stating a quantity, and they divide in two. Seven of
+them reduce to a truth value and carry one: that the across-study slopes
+are all positive, that the interval excluding 1 is the conservative
+group’s, that the within-study slopes take both signs, that the standard
+error of the difference is the root sum of squares the footnote gives,
+that the tests use a normal approximation, that the appendix p-values
+are two-sided, and that the appendix’s Prop column is the share it says
+it is. All but the last hold. The remaining 5 describe a shape rather
+than a threshold, so the block prints the distribution and reaches no
+verdict: “mostly uncorrelated”, “smaller than the across-study slopes”,
+“tightly clustered”, “only limited evidence”, and “all CATEs via
+difference-in-means”. Each is checked against the study-level estimates
+rather than against a pooled figure. The first of them is a claim about
+27 correlations rather than one:
 
 | Quantity                                | Value    |
 |:----------------------------------------|:---------|
@@ -494,38 +543,135 @@ alt="Figure 2: within-study correspondence of CATEs, as the rewrite produces it.
 
 ## In-Text Quantities
 
-| Quantity | Published | Rewrite | Match |
-|:---|---:|---:|:---|
-| Study pairs analysed | 27 | 27.00 | yes |
-| Individual survey responses | 101,745 | 101,745.00 | yes |
-| Separate experiments | 54 | 54.00 | yes |
-| Distinct subgroups | 16 | 16.00 | yes |
-| Comparison opportunities | 393 | 393.00 | yes |
-| Difference-in-CATEs significant | 59 | 59.00 | yes |
-| Share of comparisons significant (%) | 15 | 15.01 | yes |
-| Sign disagreements with both versions significant | 0 | 0.00 | yes |
-| CATEs significant in the original version | 156 | 156.00 | yes |
-| Of those, significant in the MTurk version | 118 | 118.00 | yes |
-| CATEs indistinguishable from zero in the original version | 237 | 237.00 | yes |
-| Of those, indistinguishable in the MTurk version | 158 | 158.00 | yes |
-| Overall significance match rate (%) | 70 | 70.23 | yes |
-| Smallest across-study slope | 0.71 | 0.71 | yes |
-| Largest across-study slope | 1.01 | 1.01 | yes |
-| Across-study intervals excluding one | 1 | 1.00 | yes |
-| F tests failing to reject at 0.05 | 25 | 25.00 | yes |
+| Section | Quantity | Published | Rewrite | Match |
+|:---|:---|---:|---:|:---|
+| Abstract | Study pairs analysed | 27 | 27 | yes |
+| Abstract | Individual survey responses | 101745 | 101745 | yes |
+| Significance statement | Survey experiments replicated | 27 | 27 | yes |
+| Significance statement | Individual survey responses | 101745 | 101745 | yes |
+| Methods and Materials | Original-replication pairs reanalysed | 27 | 27 | yes |
+| Methods and Materials | Distinct subgroups | 16 | 16 | yes |
+| Methods and Materials | Separate experiments | 54 | 54 | yes |
+| Methods and Materials | Study pairs, same sentence | 27 | 27 | yes |
+| Methods and Materials | Pretreatment attributes | 6 | 6 | yes |
+| Methods and Materials | Largest number of categories per attribute | 3 | 3 | yes |
+| Methods and Materials | Youngest age band, lower bound | 18 | 18 | yes |
+| Methods and Materials | Youngest age band, upper bound | 39 | 39 | yes |
+| Methods and Materials | Middle age band, lower bound | 40 | 40 | yes |
+| Methods and Materials | Middle age band, upper bound | 59 | 59 | yes |
+| Methods and Materials | Oldest age band, lower bound | 60 | 60 | yes |
+| Results footnote | Significance threshold for the difference | 0.05 | 0.05 | yes |
+| Results | Comparison opportunities | 393 | 393 | yes |
+| Results | Difference-in-CATEs significant | 59 | 59 | yes |
+| Results | Share of comparisons significant | 15 | 15.01 | yes |
+| Results | Sign disagreements with both versions significant | 0 | 0 | yes |
+| Results | Comparison opportunities, same sentence | 393 | 393 | yes |
+| Results | CATEs significant in the original version | 156 | 156 | yes |
+| Results | Of those, significant in the MTurk version | 118 | 118 | yes |
+| Results | CATEs indistinguishable from zero in the original version | 237 | 237 | yes |
+| Results | Of those, indistinguishable in the MTurk version | 158 | 158 | yes |
+| Results | Overall significance match rate | 70 | 70.23 | yes |
+| Results | Smallest across-study slope | 0.71 | 0.71 | yes |
+| Results | Largest across-study slope | 1.01 | 1.01 | yes |
+| Results | Across-study intervals excluding one | 1 | 1 | yes |
+| Results | F tests failing to reject at 0.05 | 25 | 25 | yes |
+| Results | Study pairs offering a joint F test | 27 | 27 | yes |
+| Discussion | Pairs of survey experiments | 27 | 27 | yes |
+| Appendix table headers | Confidence level of the CATE intervals | 95 | 95.00 | yes |
 
 Every quantity the article states in prose
+
+The 12 prose claims missing from this table are the descriptive ones
+listed under Ground Truth above, which state no number. Seven carry a
+computed truth value and all but one holds; the exception is the
+appendix’s description of its own Prop column, which is the subject of
+the errata note.
+
+------------------------------------------------------------------------
+
+## The Extraction and the Two Instruments
+
+The ground truth answers “does the pipeline reproduce what the paper
+prints?” It cannot answer “did anyone look at every number the paper
+prints?”, because a ground truth built from the pipeline’s own outputs
+is silent about a sentence nobody thought to check. Two further
+artifacts close that gap.
+
+**`ground_truth/published_claims.csv` is the extraction.** The article’s
+six pages and the appendix were read token by token rather than searched
+for patterns: every numeric string in the body, and a second pass for
+numbers written as words (“six attributes”, “three categories”, “two
+nested models”), classified by hand into the five kinds a claim can be.
+Author footnote markers, postal codes, citation markers, editorial
+dates, the DOI, page numbers, cross-references of the form “Fig. 1” and
+the reference lists of both documents are excluded as provably not
+claims; everything else has a row. The extraction covers the published
+article and the published supplementary appendix, at sentence
+granularity for prose and at float granularity for the tables and
+figures, whose cells the ground truth already compares one by one.
+
+| Claim type   | Needs a block | Claims |
+|:-------------|:--------------|-------:|
+| definitional | no            |     14 |
+| definitional | yes           |      7 |
+| descriptive  | yes           |     12 |
+| pipeline     | yes           |     26 |
+| structural   | no            |      3 |
+| transcribed  | no            |      1 |
+
+The extraction, by claim type
+
+Alongside these 63 prose claims the extraction carries 31 rows recording
+how many numbers each published float prints, 5,805 in all, which the
+build checks against the transcriptions float by float.
+
+A claim needs a block when a block can print something true. Every
+`pipeline` and `descriptive` claim does, and so does every definitional
+claim the pipeline can reach: the age band boundaries come out of the
+subgroup labels the data carry, the confidence level out of the interval
+half widths, and the significance threshold out of the point at which
+the classification of the 393 differences changes. The claims that need
+no block are the ones nothing in the deposit could confirm or refute,
+and they are verified where they are used instead: the level of the
+jackknife interval is `deming()`’s own `conf` argument, `HC2` is
+`lm_robust`’s default and is visible in `run_cates()`, and the
+hypothetical match rates of 100 per cent are not estimates at all.
+
+**`maintained/in_text_claims.R` is the second instrument.** It
+recomputes each of those claims from `maintained/output/` by a path of
+its own and prints `CLAIM <id> = <value> || <label>` for each. Where
+`build_ground_truth.R` reaches a quantity through
+`text_correspondence_summary.csv`, the claims file goes back to the
+estimates that summary was built from, so the two derivations are
+separate and a disagreement means one of them is wrong. Neither file
+refits anything; estimation happens once, in the analysis scripts, and
+only derivation is duplicated.
+
+**The coverage gate is the last step of `build_ground_truth.R`.** It
+runs the claims file as a program in its own environment, captures its
+output, and stops the build unless the 45 printed claim identifiers are
+exactly the 45 the extraction requires and every printed value matches
+the ground truth’s own answer, rendered at the precision the article
+prints. The precision itself lives only in the extraction, so the two
+instruments cannot name different ones, and the extraction’s stored
+strings are checked against that precision before anything consumes
+them. Reading the file as text would not do: a block that errors, or one
+that computes silently and prints nothing, satisfies a textual check
+completely.
+
+The gate also reconciles the extraction against the ground truth’s own
+transcription of the same pages, which are two hand readings of one
+document and nothing else compares them.
 
 ------------------------------------------------------------------------
 
 ## Rewrite Verification
 
 The rewrite is deterministic. Running `run_all.R` twice in succession
-leaves every CSV and every PNG in `maintained/output/` byte-identical;
-the only files that change are the two figure PDFs, and comparing them
-with the timestamp stripped shows no other difference. Nothing in the
-pipeline draws a random number, so there is no seed to set and no
-sampler version to pin.
+leaves every file in `maintained/output/` byte-identical, the two figure
+PDFs included, once their embedded write timestamps have been blanked.
+Nothing in the pipeline draws a random number, so there is no seed to
+set and no sampler version to pin.
 
 The estimates themselves were checked against the deposit rather than
 only against the paper, which is a stronger test because the deposit
@@ -539,7 +685,8 @@ carries more digits than the printed tables do:
 | 54 sample sizes against CLM_study_ns_df.rds | Identical |
 | Table 1 and Table 2 against the published pages | 296 of 296 cells |
 | Appendix estimation cells against the published appendix | 3,935 of 3,935 cells |
-| run_all.R run twice | Byte-identical apart from two PDF timestamps |
+| run_all.R run twice | Byte-identical across every output file |
+| Coverage gate over in_text_claims.R | 45 of 45 claims printed and matching |
 
 Verification of the rewrite
 

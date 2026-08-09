@@ -45,7 +45,15 @@ walk(
 
 # Ground truth ----
 # Rebuilds the comparison table from the outputs above, so it cannot go stale.
+# Its last step is the coverage gate, which runs maintained/in_text_claims.R as a
+# program and halts unless the claims it prints are exactly the claims the
+# extraction requires and agree with the ground truth at the article's precision.
 source(here::here("ground_truth", "build_ground_truth.R"))
+
+# In-text claims ----
+# The second instrument, run again here for the human-readable log. Each line
+# pairs a sentence from the article with the number the pipeline gives for it.
+source(here::here("maintained", "in_text_claims.R"))
 
 # Deposited archive, again ----
 # The check at the top of this file is a precondition: it says original/ was intact

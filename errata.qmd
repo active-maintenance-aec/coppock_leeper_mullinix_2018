@@ -1,0 +1,80 @@
+---
+title: "Errata"
+subtitle: "On Coppock, Leeper and Mullinix (2018), *Proceedings of the National Academy of Sciences* 115(49)"
+format:
+  pdf:
+    output-file: coppock_leeper_mullinix_2018_errata.pdf
+    geometry: margin=1.25in
+    fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(here)
+library(tidyverse)
+here::i_am("errata.qmd")
+
+# Every number in the corrected sentence and in the note beneath it is computed
+# here, from the maintained pipeline's output, at the time this document is
+# rendered. Nothing below is typed.
+table_a <- read_csv(here("maintained", "output", "table_a_cate_estimates.csv"),
+                    show_col_types = FALSE)
+
+# The published Prop column, as the appendix prints it, alongside the share of the
+# study version each row's subjects actually are.
+prop_blocks <- table_a |>
+  mutate(attribute = str_split_i(covariate_class, ":", 1)) |>
+  summarize(
+    published_share = sum(prop_deposit_formula),
+    true_share = sum(prop),
+    .by = c(study_label, sample, attribute)
+  ) |>
+  mutate(divisor = true_share / published_share)
+
+# The divisor is the number of terms in the regression that produced the row, so
+# it is two wherever the study fits treatment and an intercept alone.
+n_pairs <- n_distinct(table_a$study_label)
+n_two_term_pairs <- prop_blocks |>
+  summarize(all_two = all(round(divisor) == 2), .by = study_label) |>
+  pull(all_two) |>
+  sum()
+
+f2 <- function(x) sprintf("%.2f", x)
+
+# A corrected sentence that spells a number out has to compute it too.
+spell <- function(n) {
+  words <- c("one", "two", "three", "four", "five", "six", "seven", "eight",
+             "nine", "ten")
+  stopifnot(n >= 1, n <= length(words))
+  words[n]
+}
+
+two_term_divisor <- prop_blocks |>
+  filter(round(divisor) == min(round(divisor))) |>
+  pull(divisor) |>
+  round() |>
+  unique()
+stopifnot(length(two_term_divisor) == 1)
+
+# One row of one table, quoted as the illustration.
+example <- table_a |>
+  filter(appendix_table == 1, sample == "original",
+         covariate_class == "Age: 18 - 39")
+stopifnot(nrow(example) == 1)
+```
+
+This note lists one correction to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). It is a sentence in the supplementary appendix that describes a column of the appendix tables incorrectly. **It changes no conclusion of the paper**, and it touches none of the estimates: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
+
+The number in the corrected sentence and every number in the note beneath it are computed from the deposited replication archive ([10.7910/DVN/4WNGEJ](https://doi.org/10.7910/DVN/4WNGEJ)) at the time this document is rendered. The code and output supporting the correction are at [github.com/active-maintenance-aec/coppock_leeper_mullinix_2018](https://github.com/active-maintenance-aec/coppock_leeper_mullinix_2018).
+
+## 1. The appendix's Prop column is not the proportion the appendix says it is
+
+> The Prop column describes what proportion of the subjects in a given experiment belong to the associated covariate class.
+
+Corrected:
+
+> The Prop column describes what proportion of the subjects in a given experiment belong to the associated covariate class, **divided by the number of terms in the regression that produced the row**.
+
+The divisor is `r spell(two_term_divisor)` in `r n_two_term_pairs` of the `r n_pairs` study pairs, whose subgroup regressions carry a treatment indicator and an intercept and nothing else, and three, four or five in the remaining `r spell(n_pairs - n_two_term_pairs)`, whose regressions carry a further arm of the study's own factorial design or the party identification its assignment probabilities depend on. An attribute's classes therefore sum to between `r f2(min(prop_blocks$published_share))` and `r f2(max(prop_blocks$published_share))` across the tables rather than to 1.00. In appendix Table 1, for instance, the Original panel prints `r f2(example$prop_deposit_formula)` for respondents aged 18 to 39, where they are in fact `r f2(example$prop)` of that sample.
+
+The error is in the deposited code rather than in the typesetting: the expression that builds the column divides each subgroup's count by a total taken over every row of the fitted results rather than over the treatment coefficients alone, and all `r nrow(table_a)` printed values reproduce exactly under that expression. The correction restates what the column contains, because the alternative would be to reprint 27 tables in order to change one word in each cell. Nothing in the article's text, tables or figures quotes a Prop value, so no other published number depends on it.
