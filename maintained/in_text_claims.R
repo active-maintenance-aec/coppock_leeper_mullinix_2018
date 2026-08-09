@@ -103,6 +103,23 @@ emit("methods_study_pairs", n_distinct(cate_estimates$study),
 emit("methods_subgroups", n_distinct(table_a$covariate_class),
      "Distinct covariate classes in the appendix tables")
 
+# "The full list of studies, with the sample sizes used in the analyses reported
+#  here, is presented in Table 1."
+study_ns <- read_csv(file.path(out_dir, "study_ns.csv"), show_col_types = FALSE)
+emit_holds(
+  "methods_table1_sample_sizes",
+  all(study_ns$reported_total_n == study_ns$analysis_obs_total_n),
+  str_glue("Table 1's N columns total {sum(study_ns$reported_total_n)} respondents ",
+           "against {sum(study_ns$analysis_obs_total_n)} observations in the fits: ",
+           "the reported sample is larger in ",
+           "{sum(study_ns$analysis_obs_total_n < study_ns$reported_total_n)} of the ",
+           "{nrow(study_ns)} pairs, equal in ",
+           "{sum(study_ns$analysis_obs_total_n == study_ns$reported_total_n)}, and ",
+           "smaller in ",
+           "{sum(study_ns$analysis_obs_total_n > study_ns$reported_total_n)}. The ",
+           "column counts respondents, which is what the abstract's total needs, ",
+           "and not what the analyses are fitted on"))
+
 # "We estimate all CATEs via difference-in-means." The appendix repeats it: "the
 #  CATE column refers to the difference-in-means estimate of the treatment effect,
 #  conditional on membership in the covariate class."

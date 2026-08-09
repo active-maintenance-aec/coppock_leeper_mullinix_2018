@@ -127,6 +127,7 @@ text_rewrite <- out("text_correspondence_summary.csv")
 scatter_rewrite <- out("cate_scatter.csv")
 correlations_rewrite <- out("text_within_study_correlation.csv")
 f_tests_rewrite <- out("f_tests.csv")
+study_ns_rewrite <- out("study_ns.csv")
 figure_1_rewrite <- out("figure_1_across_study_correspondence.csv")
 figure_2_rewrite <- out("figure_2_within_study_correspondence.csv")
 
@@ -520,6 +521,27 @@ text_rows <- tribble(
     n_distinct(results_script$group), "16", n_distinct(table_a_rewrite$covariate_class),
     NA, NA_character_,
     "\"among 16 distinct subgroups defined by subjects' pretreatment background characteristics\"",
+
+  "methods_table1_sample_sizes", "Methods and Materials", "Table 1 reports the analysis sample sizes",
+    NA, NA_character_, NA,
+    all(study_ns_rewrite$reported_total_n == study_ns_rewrite$analysis_obs_total_n),
+    "paper_internal",
+    str_glue("\"The full list of studies, with the sample sizes used in the analyses reported ",
+             "here, is presented in Table 1.\" Table 1's N columns count respondents and total ",
+             "{sum(study_ns_rewrite$reported_total_n)}, which is the figure the abstract gives ",
+             "for individual survey responses. The fits use ",
+             "{sum(study_ns_rewrite$analysis_obs_total_n)} observations, the respondents assigned ",
+             "to the two arms each treatment contrast compares: the reported sample is larger in ",
+             "{sum(study_ns_rewrite$analysis_obs_total_n < study_ns_rewrite$reported_total_n)} of ",
+             "the {nrow(study_ns_rewrite)} pairs, equal in ",
+             "{sum(study_ns_rewrite$analysis_obs_total_n == study_ns_rewrite$reported_total_n)}, ",
+             "and smaller in ",
+             "{sum(study_ns_rewrite$analysis_obs_total_n > study_ns_rewrite$reported_total_n)}. ",
+             "The article contradicts itself rather than merely being imprecise: Table 1 reports ",
+             "{study_ns_rewrite$reported_original_n[study_ns_rewrite$study_label == 'Bergan (2012)']} ",
+             "for Bergan (2012)'s original sample where every attribute in the corresponding ",
+             "panel of appendix Table 1 sums to ",
+             "{study_ns_rewrite$analysis_obs_original_n[study_ns_rewrite$study_label == 'Bergan (2012)']}."),
 
   "methods_cate_difference_in_means", "Methods and Materials",
     "CATEs estimated by difference-in-means", NA, NA_character_, NA,

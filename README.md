@@ -206,11 +206,11 @@ reports the correct quantity rather than carrying the error forward.
 | Appendix Tables 1 to 27, estimates | All 3,935 CATE, SE, p-value and interval cells reproduce |
 | Appendix Tables 1 to 27, N column | Reproduces; 98 of 787 cells are one to three observations short |
 | Appendix Tables 1 to 27, Prop column | Reproduces; every one of the 787 is the share divided by the number of regression terms |
-| In-text quantities | 45 prose claims, every one covered by a block |
+| In-text quantities | 46 prose claims, every one covered by a block |
 
 Reproduction verdict by component
 
-The ground truth records 424 claims, 410 of which carry a value the
+The ground truth records 425 claims, 410 of which carry a value the
 article or its appendix prints. **All 410 are reproduced by the
 deposited code.** 379 are also reproduced by the rewrite; the remaining
 31 are the N and Prop columns of the appendix tables, where the rewrite
@@ -222,20 +222,21 @@ standard errors, p-values and confidence intervals in the same tables
 are untouched, both main tables are untouched, and both figures are
 untouched.
 
-One further observation concerns not a number but what a number counts.
-Table 1’s `Original N` and `Mturk N` columns, which sum to the
-abstract’s 101,745 individual survey responses, mean different things in
-the two halves of the table. For the eleven studies from Coppock (2018)
-they are the observations the estimates use. For the sixteen from
-Mullinix et al. (2015) they are the number of rows in the deposited
-file, which is the whole survey wave rather than the respondents
-assigned to that experiment, and the same MTurk waves are counted once
-per study that drew on them. Bergan (2012) is listed at 1,206 and 1,913;
-the subgroup estimates use 396 and 587. The figure is a faithful
-description of the deposit and reproduces exactly, and the paper’s claim
-about it is that Table 1 gives “the sample sizes used in the analyses
-reported here”. For the sixteen it does not.
-`maintained/output/study_ns.csv` carries both counts for every study.
+One further finding concerns not a number but what a number counts, and
+it is entry 2 of the errata. Table 1’s `Original N` and `Mturk N`
+columns, which sum to the abstract’s 101,745 individual survey
+responses, mean different things in the two halves of the table. For the
+eleven studies from Coppock (2018) they are the observations the
+estimates use. For the sixteen from Mullinix et al. (2015) they are the
+number of rows in the deposited file, which is the whole survey wave
+rather than the respondents assigned to that experiment, and the same
+MTurk waves are counted once per study that drew on them. Bergan (2012)
+is listed at 1,206 and 1,913; the subgroup estimates use 396 and 587.
+The figure is a faithful description of the deposit and reproduces
+exactly, and the paper’s claim about it is that Table 1 gives “the
+sample sizes used in the analyses reported here”. For the sixteen it
+does not. `maintained/output/study_ns.csv` carries both counts for every
+study.
 
 ------------------------------------------------------------------------
 
@@ -315,23 +316,34 @@ version of each column alongside the corrected one, so the published
 values remain checkable. Under the deposit’s formulas all 787 N cells
 and all 787 Prop cells reproduce exactly.
 
-**A note correcting the article.** The Prop defect is not only a wrong
-column; the appendix also tells the reader what that column contains,
-and the sentence is not true of the numbers printed beneath it. A
-sentence a reader would quote and be misled by is a correction to the
-published record rather than a note about the deposit, so it is set out
-in `coppock_leeper_mullinix_2018_errata.pdf` at the root of this
-repository, with its numbers computed from the pipeline when the
-document is rendered. It is the only entry, and it changes no
-conclusion.
+**A note correcting the article.** Two sentences describe a column of a
+table incorrectly, and a sentence a reader would quote and be misled by
+is a correction to the published record rather than a note about the
+deposit. Both are set out in `coppock_leeper_mullinix_2018_errata.pdf`
+at the root of this repository, with their numbers computed from the
+pipeline when the document is rendered. Neither changes a conclusion.
+The first is the Prop defect above: the appendix tells the reader what
+that column contains and the sentence is not true of the numbers printed
+beneath it. The second concerns Table 1.
 
-**Nothing else in the article needs correcting, which is a result rather
-than a silence.** Every number the article and its appendix print
-reproduces from the deposited code at the precision the page carries. No
-ground truth row is `paper_internal`: the article contradicts neither
-its own tables nor its own data anywhere. Of the seven descriptive
-claims that assert something about the estimates without stating a
-number, six hold and the seventh is the Prop sentence above. The two
+**The second entry is the Table 1 sentence set out above**, that Table 1
+gives “the sample sizes used in the analyses reported here” when its
+columns count the whole survey wave. It was recorded here as an
+observation about what a number counts before it was recognised as a
+correction to the published record, which is the same shape as the first
+entry: a sentence telling the reader what a column contains, and not
+true of the column beneath it.
+
+**Every published estimate still reproduces, and the one internal
+contradiction is that sentence.** Every number the article and its
+appendix print reproduces from the deposited code at the precision the
+page carries. Exactly one ground truth row is `paper_internal`, the
+Table 1 sentence: the article contradicts itself there rather than
+merely being imprecise, since Table 1 reports 1,206 for Bergan (2012)’s
+original sample where every attribute in the corresponding panel of
+appendix Table 1 sums to 396. Nowhere does it contradict its own data.
+Of the descriptive claims that assert something about the estimates
+without stating a number, all hold but the two corrected here. The two
 shapes of erratum that no failing row would ever surface were looked for
 and are absent: no sentence states the cause of an error elsewhere in
 the paper, and no published number agrees with the deposited code while
@@ -346,7 +358,7 @@ assignment probabilities depend on.
 
 ## Ground Truth
 
-`ground_truth/coppock_leeper_mullinix_2018_ground_truth.csv` has 424
+`ground_truth/coppock_leeper_mullinix_2018_ground_truth.csv` has 425
 rows. Every published float is covered, and the appendix is covered cell
 by cell.
 
@@ -355,7 +367,7 @@ by cell.
 | Table 1 | 216 | 216 | 216 | 216 |
 | Table 2 | 80 | 80 | 80 | 80 |
 | Appendix Tables 1 to 27 | 81 | 81 | 81 | 50 |
-| In-text quantities | 45 | 33 | 33 | 33 |
+| In-text quantities | 46 | 33 | 33 | 33 |
 | Figures 1 and 2 | 2 | 0 | 0 | 0 |
 
 Ground truth coverage
@@ -372,9 +384,9 @@ of the deposit’s own `study_table.tex`, `group_table.tex` and
 `value_rewrite` is read out of `maintained/output/`. No published number
 is an input to any computation in `maintained/`.
 
-Of the 424 rows, 14 carry no published value. Two are Figures 1 and 2,
-which print no numbers. The other 12 are sentences that describe the
-estimates without stating a quantity, and they divide in two. Seven of
+Of the 425 rows, 15 carry no published value. Two are Figures 1 and 2,
+which print no numbers. The other 13 are sentences that describe the
+estimates without stating a quantity, and they divide in two. Eight of
 them reduce to a truth value and carry one: that the across-study slopes
 are all positive, that the interval excluding 1 is the conservative
 group’s, that the within-study slopes take both signs, that the standard
@@ -581,8 +593,8 @@ alt="Figure 2: within-study correspondence of CATEs, as the rewrite produces it.
 
 Every quantity the article states in prose
 
-The 12 prose claims missing from this table are the descriptive ones
-listed under Ground Truth above, which state no number. Seven carry a
+The 13 prose claims missing from this table are the descriptive ones
+listed under Ground Truth above, which state no number. Eight carry a
 computed truth value and all but one holds; the exception is the
 appendix’s description of its own Prop column, which is the subject of
 the errata note.
@@ -614,14 +626,14 @@ figures, whose cells the ground truth already compares one by one.
 |:-------------|:--------------|-------:|
 | definitional | no            |     14 |
 | definitional | yes           |      7 |
-| descriptive  | yes           |     12 |
+| descriptive  | yes           |     13 |
 | pipeline     | yes           |     26 |
 | structural   | no            |      3 |
 | transcribed  | no            |      1 |
 
 The extraction, by claim type
 
-Alongside these 63 prose claims the extraction carries 31 rows recording
+Alongside these 64 prose claims the extraction carries 31 rows recording
 how many numbers each published float prints, 5,805 in all, which the
 build checks against the transcriptions float by float.
 
@@ -649,8 +661,8 @@ only derivation is duplicated.
 
 **The coverage gate is the last step of `build_ground_truth.R`.** It
 runs the claims file as a program in its own environment, captures its
-output, and stops the build unless the 45 printed claim identifiers are
-exactly the 45 the extraction requires and every printed value matches
+output, and stops the build unless the 46 printed claim identifiers are
+exactly the 46 the extraction requires and every printed value matches
 the ground truth’s own answer, rendered at the precision the article
 prints. The precision itself lives only in the extraction, so the two
 instruments cannot name different ones, and the extraction’s stored
@@ -686,7 +698,7 @@ carries more digits than the printed tables do:
 | Table 1 and Table 2 against the published pages | 296 of 296 cells |
 | Appendix estimation cells against the published appendix | 3,935 of 3,935 cells |
 | run_all.R run twice | Byte-identical across every output file |
-| Coverage gate over in_text_claims.R | 45 of 45 claims printed and matching |
+| Coverage gate over in_text_claims.R | 46 of 46 claims printed and matching |
 
 Verification of the rewrite
 
