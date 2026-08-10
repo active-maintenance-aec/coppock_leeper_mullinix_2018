@@ -65,8 +65,8 @@ token-by-token extraction of the article and appendix that decides what
 coverage means. `original/` is created by the download script and is
 deliberately absent from the repository. This README is the
 reproducibility report, also available as a PDF in `report/`;
-`coppock_leeper_mullinix_2018_errata.pdf` at the root corrects one
-sentence of the published appendix.
+`coppock_leeper_mullinix_2018_errata.pdf` at the root corrects the
+published article.
 
 **License.** CC0 1.0 Universal, matching the terms of the deposit this
 repository maintains, so nothing in the chain is more restrictive than
@@ -333,6 +333,13 @@ about what a number counts before it was recognised as a correction to
 the published record, which is the same shape as entry 1: a sentence
 telling the reader what a column contains, and not true of the column
 beneath it.
+
+**Entries 3 and 4 are in the reference list**, and no ground truth row
+reaches them: every printed entry was sent whole to Crossref and the
+authoritative record checked back into it. References 1 and 2 both print
+“Druckman JN, Green DP, Kuklinski JH, Arthur L”, where the fourth author
+is Arthur Lupia and his given name has been promoted to a surname. No
+citation in the text points at the wrong work.
 
 **Every published estimate still reproduces, and the one internal
 contradiction is that sentence.** Every number the article and its

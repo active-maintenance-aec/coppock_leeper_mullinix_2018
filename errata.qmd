@@ -171,7 +171,25 @@ entries <- tribble(
     "every attribute in the corresponding panel of appendix Table 1 sums to ",
     "{comma(bergan_appendix_n)}. The appendix is right. No published estimate depends on ",
     "the distinction: Table 1's counts are quoted in the article only as sample sizes, and ",
-    "each subgroup's own N is printed beside its estimate throughout the appendix.")
+    "each subgroup's own N is printed beside its estimate throughout the appendix."),
+
+  3, "bibliographic", "reference_audit", "brief",
+  "Arthur Lupia's given name is printed as his surname in reference 1",
+  "published p. 12445",
+  "1. Druckman JN, Green DP, Kuklinski JH, [[Arthur L]] (2006) The growth and development of experimental research in political science. Am Polit Sci Rev 100:627--635.",
+  "1. Druckman JN, Green DP, Kuklinski JH, Lupia A (2006) The growth and development of experimental research in political science. Am Polit Sci Rev 100:627--635.",
+  paste("Crossref, doi 10.1017/s0003055406062514: Druckman, Green, Kuklinski, Lupia.",
+        "The fourth author's given name was promoted to a surname and his surname",
+        "dropped, so the entry reads as though its fourth author were named Arthur."),
+
+  4, "bibliographic", "reference_audit", "brief",
+  "The same author is printed the same way in reference 2",
+  "published p. 12445",
+  "2. Druckman JN, Green DP, Kuklinski JH, [[Arthur L]] (2011) Cambridge Handbook of Experimental Political Science (Cambridge Univ Press, New York).",
+  "2. Druckman JN, Green DP, Kuklinski JH, Lupia A (2011) Cambridge Handbook of Experimental Political Science (Cambridge Univ Press, New York).",
+  paste("The four named are the handbook's editors. Crossref, doi",
+        "10.1017/cbo9780511921452.001, the opening chapter they wrote for it:",
+        "Druckman, Green, Kuklinski, Lupia.")
 ) |>
   mutate(across(c(title, published, corrected, note), as.character))
 
@@ -189,7 +207,7 @@ emit <- function(n) {
 }
 ```
 
-This note lists `r spell(nrow(entries))` corrections to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). Both are sentences that describe a column of a table incorrectly: one in the supplementary appendix, one in the main text. **Neither changes any conclusion of the paper**, and neither touches an estimate: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
+This note lists `r spell(nrow(entries))` corrections to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). The first two are sentences that describe a column of a table incorrectly: one in the supplementary appendix, one in the main text. The other two are entries of the reference list that print an author's given name as his surname. **None of them changes any conclusion of the paper**, and none touches an estimate: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
 
 The numbers in the corrected sentences and every number in the notes beneath them are computed from the deposited replication archive ([10.7910/DVN/4WNGEJ](https://doi.org/10.7910/DVN/4WNGEJ)) at the time this document is rendered. The code and output supporting the correction are at [github.com/active-maintenance-aec/coppock_leeper_mullinix_2018](https://github.com/active-maintenance-aec/coppock_leeper_mullinix_2018).
 
@@ -199,6 +217,19 @@ emit(1)
 
 ```{r entry-2, results="asis"}
 emit(2)
+```
+
+# The reference list
+
+The two entries below correct the article's reference list. Both were found by an audit that sends every printed entry whole to Crossref and checks the authoritative record back into it, and both are verified against the record named in the note. No cited work is missing and no citation in the text points at the wrong work: what is wrong is how the reference list prints one author's name.
+
+```{r reference-entries, results="asis"}
+walk(entries$entry[entries$source == "reference_audit"], function(n) {
+  e <- entries |> filter(entry == n)
+  cat("\n\n## ", e$entry, ". ", e$title, "\n\nPublished, ",
+      str_remove(e$location, "^published "), ":\n\n> ", bold(e$published),
+      "\n\nCorrected:\n\n> ", e$corrected, "\n\n", e$note, "\n", sep = "")
+})
 ```
 
 ```{r emit-spine}
