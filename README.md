@@ -321,18 +321,18 @@ table incorrectly, and a sentence a reader would quote and be misled by
 is a correction to the published record rather than a note about the
 deposit. Both are set out in `coppock_leeper_mullinix_2018_errata.pdf`
 at the root of this repository, with their numbers computed from the
-pipeline when the document is rendered. Neither changes a conclusion.
-The first is the Prop defect above: the appendix tells the reader what
-that column contains and the sentence is not true of the numbers printed
-beneath it. The second concerns Table 1.
+pipeline when the document is rendered. Neither changes a conclusion,
+and they are numbered here as the note numbers them. **Entry 1** is the
+Prop defect above: the appendix tells the reader what that column
+contains and the sentence is not true of the numbers printed beneath it.
 
-**The second entry is the Table 1 sentence set out above**, that Table 1
-gives “the sample sizes used in the analyses reported here” when its
-columns count the whole survey wave. It was recorded here as an
-observation about what a number counts before it was recognised as a
-correction to the published record, which is the same shape as the first
-entry: a sentence telling the reader what a column contains, and not
-true of the column beneath it.
+**Entry 2 is the Table 1 sentence set out above**, that Table 1 gives
+“the sample sizes used in the analyses reported here” when its columns
+count the whole survey wave. It was recorded here as an observation
+about what a number counts before it was recognised as a correction to
+the published record, which is the same shape as entry 1: a sentence
+telling the reader what a column contains, and not true of the column
+beneath it.
 
 **Every published estimate still reproduces, and the one internal
 contradiction is that sentence.** Every number the article and its
