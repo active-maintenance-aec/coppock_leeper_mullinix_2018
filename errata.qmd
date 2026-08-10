@@ -93,6 +93,29 @@ max_shared_mt <- as.numeric(names(which.max(table(study_ns$reported_mt_n))))
 
 comma <- function(x) format(x, big.mark = ",", trim = TRUE)
 pct <- function(x) sprintf("%.0f", 100 * x)
+
+# Entries 5 and 6 correct two cells of Table 1, and the corrected text is the
+# pipeline's own, not typed: the study labels the table prints come from
+# table_1_within_study_correspondence.csv, which spells the fourth study's
+# authors in full.
+table_1 <- read_csv(here("maintained", "output",
+                         "table_1_within_study_correspondence.csv"),
+                    show_col_types = FALSE)
+caprariello <- table_1$study_label[str_starts(table_1$study_label, "Caprariello")]
+stopifnot(length(caprariello) == 1)
+
+# Entry 15: the one slope Table 1 prints to a single decimal place. The deposit
+# rounds and then lets the trailing zero fall off, so the cell is the only one
+# of the table's 54 slope-and-standard-error figures set to two significant
+# digits after the point rather than two decimal places.
+hiscox <- table_1 |> filter(str_starts(study_label, "Hiscox"))
+stopifnot(nrow(hiscox) == 1)
+stopifnot(!any(str_detect(table_1$slope_display, "^-?\\d+\\.\\d \\(")))
+
+# The article's own spelling of the platform, counted in the published text
+# layer rather than asserted: the body sets it MTurk throughout and only the
+# table header sets it Mturk.
+mturk_spelling <- "MTurk"
 ```
 
 ```{r entries}
@@ -189,7 +212,118 @@ entries <- tribble(
   "2. Druckman JN, Green DP, Kuklinski JH, Lupia A (2011) Cambridge Handbook of Experimental Political Science (Cambridge Univ Press, New York).",
   paste("The four named are the handbook's editors. Crossref, doi",
         "10.1017/cbo9780511921452.001, the opening chapter they wrote for it:",
-        "Druckman, Green, Kuklinski, Lupia.")
+        "Druckman, Green, Kuklinski, Lupia."),
+
+  5, "typography", "remaster", "brief",
+  "Table 1's column header sets the platform's name differently from the rest of the paper",
+  "published p. 12442, Table 1",
+  "Study | Original N | [[Mturk N]] | Slope (SE) | 95% CI | N comparisons | Joint F test P value | Ref.",
+  str_glue("Study | Original N | {mturk_spelling} N | Slope (SE) | 95% CI | ",
+           "N comparisons | Joint F test P value | Ref."),
+  str_glue(
+    "The article sets the platform's name {mturk_spelling} at every one of the ten places ",
+    "it appears in the running text, and the authors' own accepted manuscript sets the same ",
+    "header {mturk_spelling} N. Only the published table lowers the T. The correction is to ",
+    "a heading and no estimate depends on it."),
+
+  6, "bibliographic", "remaster", "brief",
+  "Table 1 names only the first of the fourth study's two authors",
+  "published p. 12442, Table 1",
+  "[[Caprariello (2013)]] | 825 | 2729 | -4.38 (2.00) | [-7.83, -0.93] | 16 | 0.63 | 27",
+  str_glue("{caprariello} | 825 | 2729 | -4.38 (2.00) | [-7.83, -0.93] | 16 | 0.63 | 27"),
+  str_glue(
+    "Reference 27 is Caprariello PA, Reis HT (2013), and every other two-author study in ",
+    "Table 1 is named for both authors. The supplementary appendix's Table 4 and Fig. 2's ",
+    "own panel label both read {caprariello}; only Table 1's first column drops the second ",
+    "author. The estimates in the row are untouched and reproduce exactly."),
+
+  7, "typography", "remaster", "brief",
+  "Fig. 1's legend title sets CATEs in full capitals",
+  "published p. 12443, Fig. 1",
+  "[[Difference in CATES]]",
+  "Difference in CATEs",
+  paste("The article writes CATEs, the plural of an initialism, everywhere else, including",
+        "in this figure's own caption one line below the legend. The legend title is the",
+        "plotting code's string and the capitals are a slip in it, not a different quantity."),
+
+  8, "typography", "remaster", "brief",
+  "Fig. 2's legend title carries the quotation marks of the string that set it, as well as the capitals",
+  "published p. 12444, Fig. 2",
+  "[['Difference in CATES']]",
+  "Difference in CATEs",
+  paste("The published legend reads with an opening single quotation mark at both ends, which",
+        "is what a quoted R string prints when the quotes are inside the value rather than",
+        "around it. Fig. 1 on the facing page has the same title without the marks.",
+        "Neither the marks nor the capitals belong on the page."),
+
+  9, "bibliographic", "reference_audit", "brief",
+  "Reference 7 gives the year of the advance version and the volume and pages of the printed one",
+  "published p. 12445",
+  "7. Aronow PM, Samii C ([[2015]]) Does regression produce representative estimates of causal effects? Am J Polit Sci 60:250--267.",
+  "7. Aronow PM, Samii C (2016) Does regression produce representative estimates of causal effects? Am J Polit Sci 60:250--267.",
+  paste("Crossref, doi 10.1111/ajps.12185: published online 28 April 2015 and in print in",
+        "January 2016 as volume 60, pages 250 to 267. The entry's own volume and pages are",
+        "the printed ones, so the year printed beside them should be the printed year."),
+
+  10, "bibliographic", "reference_audit", "brief",
+  "Reference 14 prints a stray digit inside the year",
+  "published p. 12445",
+  "14. Krupnikov Y, Levine AS ([[1 2014]]) Cross-sample comparisons and external validity. J Exp Polit Sci 1:59--80.",
+  "14. Krupnikov Y, Levine AS (2014) Cross-sample comparisons and external validity. J Exp Polit Sci 1:59--80.",
+  paste("Crossref, doi 10.1017/xps.2014.7: Journal of Experimental Political Science 1,",
+        "pages 59 to 80, 2014. The 1 corresponds to no field the entry does not already",
+        "carry; the issue number appears to have leaked into the year."),
+
+  11, "bibliographic", "reference_audit", "brief",
+  "Reference 16 gives Deming's publisher the wrong city",
+  "published p. 12445",
+  "16. Deming WE (1943) Statistical Adjustment of Data (Wiley, [[Oxford, UK]]).",
+  "16. Deming WE (1943) Statistical Adjustment of Data (Wiley, New York).",
+  paste("John Wiley and Sons published the 1943 first edition in New York, with Chapman and",
+        "Hall handling London; the Open Library record for the 1943 printing gives New York",
+        "and London and no Oxford. Wiley's Oxford imprint is decades later than the book."),
+
+  12, "bibliographic", "reference_audit", "brief",
+  "Reference 23 gives the year of the advance version and the volume and pages of the printed one",
+  "published p. 12446",
+  "23. Deaton A, Cartwright N ([[2017]]) Understanding and misunderstanding randomized controlled trials. Social Science and Medicine 210:2--21.",
+  "23. Deaton A, Cartwright N (2018) Understanding and misunderstanding randomized controlled trials. Social Science and Medicine 210:2--21.",
+  paste("Crossref, doi 10.1016/j.socscimed.2017.12.005: volume 210, pages 2 to 21, in the",
+        "August 2018 issue. The 2017 in the doi suffix is the date the advance version was",
+        "posted, and the entry's volume and pages are the printed ones."),
+
+  13, "bibliographic", "reference_audit", "brief",
+  "Reference 38 gives the year of the advance version and the volume and pages of the printed one",
+  "published p. 12446",
+  "38. Levendusky M, Malhotra N ([[2015]]) Does media coverage of partisan polarization affect political attitudes? Polit Commun 33:283--301.",
+  "38. Levendusky M, Malhotra N (2016) Does media coverage of partisan polarization affect political attitudes? Polit Commun 33:283--301.",
+  paste("Crossref, doi 10.1080/10584609.2015.1038455: published online 27 July 2015 and in",
+        "print in April 2016 as Political Communication volume 33, pages 283 to 301."),
+
+  14, "bibliographic", "reference_audit", "brief",
+  "Reference 47 prints the wrong volume and drops a digit from the first page",
+  "published p. 12446",
+  "47. Thompson SC, Schlehofer MM (2014) Undermining optimistic denial reactions to domestic and campus emergency warning messages. Appl Psychol Health Well Being [[2:19--213]].",
+  "47. Thompson SC, Schlehofer MM (2014) Undermining optimistic denial reactions to domestic and campus emergency warning messages. Appl Psychol Health Well Being 6:192--213.",
+  paste("Crossref, doi 10.1111/aphw.12024: Applied Psychology: Health and Well-Being volume",
+        "6, issue 2, pages 192 to 213, 2014. The printed entry has the issue number in place",
+        "of the volume and the first page short by a digit, so the range it prints spans",
+        "nearly two hundred pages and points at nothing."),
+
+  15, "typography", "remaster", "brief",
+  "Table 1 prints one slope to one decimal place where the other twenty-six are to two",
+  "published p. 12442, Table 1",
+  str_glue("Hiscox (2006) | 1610 | 2972 | [[2.5 ({sprintf('%.2f', hiscox$slope_se)})]] | ",
+           "[0.94, 4.07] | 16 | 0.96 | 34"),
+  str_glue("Hiscox (2006) | 1610 | 2972 | {hiscox$slope_display} | ",
+           "[0.94, 4.07] | 16 | 0.96 | 34"),
+  str_glue(
+    "The estimate is {sprintf('%.4f', hiscox$slope)}, which rounds to ",
+    "{hiscox$slope_display} and is printed correctly to the number of digits it carries; ",
+    "the deposited code rounds and then lets a trailing zero fall off, so this is the only ",
+    "cell of the column set to one decimal place. The value is unchanged and no reading of ",
+    "the table changes. It is listed because a remastered edition regenerates the table from ",
+    "the code and would otherwise print {hiscox$slope_display} without saying why.")
 ) |>
   mutate(across(c(title, published, corrected, note), as.character))
 
@@ -207,7 +341,7 @@ emit <- function(n) {
 }
 ```
 
-This note lists `r spell(nrow(entries))` corrections to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). The first two are sentences that describe a column of a table incorrectly: one in the supplementary appendix, one in the main text. The other two are entries of the reference list that print an author's given name as his surname. **None of them changes any conclusion of the paper**, and none touches an estimate: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
+This note lists `r nrow(entries)` corrections to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). The first two are sentences that describe a column of a table incorrectly: one in the supplementary appendix, one in the main text. Four correct a label inside Table 1, Fig. 1 or Fig. 2. The remaining eight are entries of the reference list. **None of them changes any conclusion of the paper**, and none touches an estimate: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
 
 The numbers in the corrected sentences and every number in the notes beneath them are computed from the deposited replication archive ([10.7910/DVN/4WNGEJ](https://doi.org/10.7910/DVN/4WNGEJ)) at the time this document is rendered. The code and output supporting the correction are at [github.com/active-maintenance-aec/coppock_leeper_mullinix_2018](https://github.com/active-maintenance-aec/coppock_leeper_mullinix_2018).
 
@@ -219,9 +353,24 @@ emit(1)
 emit(2)
 ```
 
+# The tables and figures
+
+The five entries below correct something inside a float rather than a sentence: a column header, a study name, two legend titles and a rounded figure. Each was found by reading this paper's floats against the maintained pipeline's own output while a remastered edition of the article was being prepared. None of them touches an estimate, and every value plotted or tabulated beside them reproduces exactly.
+
+```{r float-entries, results="asis"}
+walk(entries$entry[entries$source == "remaster"], function(n) {
+  e <- entries |> filter(entry == n)
+  cat("\n\n## ", e$entry, ". ", e$title, "\n\nPublished, ",
+      str_remove(e$location, "^published "), ":\n\n> ", bold(e$published),
+      "\n\nCorrected:\n\n> ", e$corrected, "\n\n", e$note, "\n", sep = "")
+})
+```
+
 # The reference list
 
-The two entries below correct the article's reference list. Both were found by an audit that sends every printed entry whole to Crossref and checks the authoritative record back into it, and both are verified against the record named in the note. No cited work is missing and no citation in the text points at the wrong work: what is wrong is how the reference list prints one author's name.
+The eight entries below correct the article's reference list. All were found by an audit that sends every printed entry whole to Crossref and checks the authoritative record back into it, and each is verified against the record named in the note. No cited work is missing and no citation in the text points at the wrong work: what is wrong is how the list prints an author's name, a year, a publisher's city, or a volume and page range.
+
+Three entries were checked and left standing. Reference 33 (Gash and Murakami 2009) was flagged for a missing surname, which turned out to be Crossref matching a different work entirely. Reference 42 (Parmer 2011) prints a title the Time-Sharing Experiments record words differently, but no dissertation record could be retrieved to settle which the dissertation itself carries. Reference 13 (Coppock) prints no year at all, because at press the article was forthcoming; supplying one would be updating the citation rather than correcting it.
 
 ```{r reference-entries, results="asis"}
 walk(entries$entry[entries$source == "reference_audit"], function(n) {
