@@ -130,8 +130,16 @@ mturk_spelling <- "MTurk"
 #
 # Numbering is the published note's and is APPEND-ONLY: an entry can already have been
 # cited, so a later finding is added at the end and never interleaved.
+#
+# claim_ids names the ground-truth rows an entry corrects, semicolon-separated, so that
+# "is this finding published?" is a query rather than a judgment. Entry 1 carries the whole
+# Prop column: the sentence defining it and the 27 appendix tables whose cells the wrong
+# definition prints, which is why the ids are listed out rather than summarised. The
+# reference-list and label entries carry none, because a printed author's name is not an
+# extraction claim and has no row. Every id here is checked against the ground truth by
+# build_ground_truth.R.
 entries <- tribble(
-  ~entry, ~class, ~source, ~form, ~title, ~location, ~published, ~corrected, ~note,
+  ~entry, ~class, ~source, ~form, ~title, ~location, ~published, ~corrected, ~note, ~claim_ids,
 
   1, "definition", "pipeline", "full",
   "The appendix's Prop column is not the proportion the appendix says it is",
@@ -157,6 +165,17 @@ entries <- tribble(
     "restates what the column contains, because the alternative would be to reprint 27 ",
     "tables in order to change one word in each cell. Nothing in the article's text, tables ",
     "or figures quotes a Prop value, so no other published number depends on it."),
+  str_c(
+    "appendix_prop_definition;appendix_table_1_prop;appendix_table_2_prop;",
+    "appendix_table_3_prop;appendix_table_4_prop;appendix_table_5_prop;",
+    "appendix_table_6_prop;appendix_table_7_prop;appendix_table_8_prop;",
+    "appendix_table_9_prop;appendix_table_10_prop;appendix_table_11_prop;",
+    "appendix_table_12_prop;appendix_table_13_prop;appendix_table_14_prop;",
+    "appendix_table_15_prop;appendix_table_16_prop;appendix_table_17_prop;",
+    "appendix_table_18_prop;appendix_table_19_prop;appendix_table_20_prop;",
+    "appendix_table_21_prop;appendix_table_22_prop;appendix_table_23_prop;",
+    "appendix_table_24_prop;appendix_table_25_prop;appendix_table_26_prop;",
+    "appendix_table_27_prop"),
 
   2, "definition", "pipeline", "full",
   "Table 1 reports each study's sample size, not the number of observations the analyses use",
@@ -195,6 +214,7 @@ entries <- tribble(
     "{comma(bergan_appendix_n)}. The appendix is right. No published estimate depends on ",
     "the distinction: Table 1's counts are quoted in the article only as sample sizes, and ",
     "each subgroup's own N is printed beside its estimate throughout the appendix."),
+  "methods_table1_sample_sizes",
 
   3, "bibliographic", "reference_audit", "brief",
   "Arthur Lupia's given name is printed as his surname in reference 1",
@@ -204,6 +224,7 @@ entries <- tribble(
   paste("Crossref, doi 10.1017/s0003055406062514: Druckman, Green, Kuklinski, Lupia.",
         "The fourth author's given name was promoted to a surname and his surname",
         "dropped, so the entry reads as though its fourth author were named Arthur."),
+  "",
 
   4, "bibliographic", "reference_audit", "brief",
   "The same author is printed the same way in reference 2",
@@ -213,6 +234,7 @@ entries <- tribble(
   paste("The four named are the handbook's editors. Crossref, doi",
         "10.1017/cbo9780511921452.001, the opening chapter they wrote for it:",
         "Druckman, Green, Kuklinski, Lupia."),
+  "",
 
   5, "typography", "remaster", "brief",
   "Table 1's column header sets the platform's name differently from the rest of the paper",
@@ -225,6 +247,7 @@ entries <- tribble(
     "it appears in the running text, and the authors' own accepted manuscript sets the same ",
     "header {mturk_spelling} N. Only the published table lowers the T. The correction is to ",
     "a heading and no estimate depends on it."),
+  "",
 
   6, "bibliographic", "remaster", "brief",
   "Table 1 names only the first of the fourth study's two authors",
@@ -236,6 +259,7 @@ entries <- tribble(
     "Table 1 is named for both authors. The supplementary appendix's Table 4 and Fig. 2's ",
     "own panel label both read {caprariello}; only Table 1's first column drops the second ",
     "author. The estimates in the row are untouched and reproduce exactly."),
+  "",
 
   7, "typography", "remaster", "brief",
   "Fig. 1's legend title sets CATEs in full capitals",
@@ -245,6 +269,7 @@ entries <- tribble(
   paste("The article writes CATEs, the plural of an initialism, everywhere else, including",
         "in this figure's own caption one line below the legend. The legend title is the",
         "plotting code's string and the capitals are a slip in it, not a different quantity."),
+  "",
 
   8, "typography", "remaster", "brief",
   "Fig. 2's legend title carries the quotation marks of the string that set it, as well as the capitals",
@@ -255,6 +280,7 @@ entries <- tribble(
         "is what a quoted R string prints when the quotes are inside the value rather than",
         "around it. Fig. 1 on the facing page has the same title without the marks.",
         "Neither the marks nor the capitals belong on the page."),
+  "",
 
   9, "bibliographic", "reference_audit", "brief",
   "Reference 7 gives the year of the advance version and the volume and pages of the printed one",
@@ -264,6 +290,7 @@ entries <- tribble(
   paste("Crossref, doi 10.1111/ajps.12185: published online 28 April 2015 and in print in",
         "January 2016 as volume 60, pages 250 to 267. The entry's own volume and pages are",
         "the printed ones, so the year printed beside them should be the printed year."),
+  "",
 
   10, "bibliographic", "reference_audit", "brief",
   "Reference 14 prints a stray digit inside the year",
@@ -273,6 +300,7 @@ entries <- tribble(
   paste("Crossref, doi 10.1017/xps.2014.7: Journal of Experimental Political Science 1,",
         "pages 59 to 80, 2014. The 1 corresponds to no field the entry does not already",
         "carry; the issue number appears to have leaked into the year."),
+  "",
 
   11, "bibliographic", "reference_audit", "brief",
   "Reference 16 gives Deming's publisher the wrong city",
@@ -282,6 +310,7 @@ entries <- tribble(
   paste("John Wiley and Sons published the 1943 first edition in New York, with Chapman and",
         "Hall handling London; the Open Library record for the 1943 printing gives New York",
         "and London and no Oxford. Wiley's Oxford imprint is decades later than the book."),
+  "",
 
   12, "bibliographic", "reference_audit", "brief",
   "Reference 23 gives the year of the advance version and the volume and pages of the printed one",
@@ -291,6 +320,7 @@ entries <- tribble(
   paste("Crossref, doi 10.1016/j.socscimed.2017.12.005: volume 210, pages 2 to 21, in the",
         "August 2018 issue. The 2017 in the doi suffix is the date the advance version was",
         "posted, and the entry's volume and pages are the printed ones."),
+  "",
 
   13, "bibliographic", "reference_audit", "brief",
   "Reference 38 gives the year of the advance version and the volume and pages of the printed one",
@@ -299,6 +329,7 @@ entries <- tribble(
   "38. Levendusky M, Malhotra N (2016) Does media coverage of partisan polarization affect political attitudes? Polit Commun 33:283--301.",
   paste("Crossref, doi 10.1080/10584609.2015.1038455: published online 27 July 2015 and in",
         "print in April 2016 as Political Communication volume 33, pages 283 to 301."),
+  "",
 
   14, "bibliographic", "reference_audit", "brief",
   "Reference 47 prints the wrong volume and drops a digit from the first page",
@@ -309,6 +340,7 @@ entries <- tribble(
         "6, issue 2, pages 192 to 213, 2014. The printed entry has the issue number in place",
         "of the volume and the first page short by a digit, so the range it prints spans",
         "nearly two hundred pages and points at nothing."),
+  "",
 
   15, "typography", "remaster", "brief",
   "Table 1 prints one slope to one decimal place where the other twenty-six are to two",
@@ -323,9 +355,10 @@ entries <- tribble(
     "the deposited code rounds and then lets a trailing zero fall off, so this is the only ",
     "cell of the column set to one decimal place. The value is unchanged and no reading of ",
     "the table changes. It is listed because a remastered edition regenerates the table from ",
-    "the code and would otherwise print {hiscox$slope_display} without saying why.")
+    "the code and would otherwise print {hiscox$slope_display} without saying why."),
+  "table_1_hiscox_2006_slope"
 ) |>
-  mutate(across(c(title, published, corrected, note), as.character))
+  mutate(across(c(title, published, corrected, note, claim_ids), as.character))
 
 stopifnot(nrow(entries) == max(entries$entry), !anyDuplicated(entries$entry))
 
