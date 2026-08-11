@@ -62,6 +62,24 @@ example <- table_a |>
          covariate_class == "Age: 18 - 39")
 stopifnot(nrow(example) == 1)
 
+# The appendix's N column, which the deposit builds as residual degrees of freedom plus two.
+# That equals the number of observations only where the regression carries a treatment
+# indicator and an intercept and nothing else, so it undercounts wherever a study pair's
+# subgroup regressions carry a further term.
+n_cells <- table_a |> mutate(differs = n != n_deposit_formula)
+n_wrong_cells <- sum(n_cells$differs)
+n_all_cells <- nrow(n_cells)
+n_wrong_by_pair <- n_cells |>
+  filter(differs) |>
+  count(appendix_table, study_label, name = "cells")
+n_shortfall <- n_cells |>
+  filter(differs) |>
+  mutate(gap = n - n_deposit_formula) |>
+  pull(gap)
+n_example <- n_cells |>
+  filter(differs, appendix_table == min(n_wrong_by_pair$appendix_table)) |>
+  slice(1)
+
 # Entry 2: what Table 1's N columns count, against what the analyses are fitted on.
 study_ns <- read_csv(here("maintained", "output", "study_ns.csv"),
                      show_col_types = FALSE)
@@ -128,8 +146,10 @@ mturk_spelling <- "MTurk"
 # set by either. Both entries here are additions or replacements inside a sentence that was
 # otherwise right, so only the corrected side carries a marked span.
 #
-# Numbering is the published note's and is APPEND-ONLY: an entry can already have been
-# cited, so a later finding is added at the end and never interleaved.
+# Numbering orders entries by kind and by severity, and MAY be changed. Append-only was the
+# earlier rule; reversed 2026-08-10. Discover first, order last. A renumber may change
+# `entry`; it must never change which claim_ids an entry claims. This file still needs one:
+# the render walks by source, so the displayed order is already non-monotonic.
 #
 # claim_ids names the ground-truth rows an entry corrects, semicolon-separated, so that
 # "is this finding published?" is a query rather than a judgment. Entry 1 carries the whole
@@ -356,7 +376,38 @@ entries <- tribble(
     "cell of the column set to one decimal place. The value is unchanged and no reading of ",
     "the table changes. It is listed because a remastered edition regenerates the table from ",
     "the code and would otherwise print {hiscox$slope_display} without saying why."),
-  "table_1_hiscox_2006_slope"
+  "table_1_hiscox_2006_slope",
+
+  16, "definition", "pipeline", "full",
+  "The appendix's N column undercounts wherever a subgroup regression carries a third term",
+  "published, supplementary appendix",
+  "The N column gives the number of subjects in the associated covariate class.",
+  str_glue(
+    "The N column gives the number of subjects in the associated covariate class, ",
+    "[[less one for each term in the regression beyond the treatment indicator and the ",
+    "intercept]]."),
+  str_glue(
+    "The deposit builds the column as the regression's residual degrees of freedom plus ",
+    "two, which equals the number of observations only where the fit carries a treatment ",
+    "indicator and an intercept and nothing else. That holds for {n_all_cells - ",
+    "n_wrong_cells} of the {n_all_cells} cells. In the remaining {n_wrong_cells}, spread ",
+    "over {spell(nrow(n_wrong_by_pair))} study pairs, the regressions carry a further arm of the ",
+    "study's own factorial design, and each printed N falls short by between ",
+    "{min(n_shortfall)} and {max(n_shortfall)}. In appendix Table ",
+    "{n_example$appendix_table}, for instance, {n_example$study_label} prints ",
+    "{n_example$n_deposit_formula} for {str_to_lower(n_example$covariate_class)} where ",
+    "{n_example$n} subjects are in that class.",
+    "\n\n",
+    "The affected pairs are ",
+    "{knitr::combine_words(str_glue('{n_wrong_by_pair$study_label} ",
+    "({n_wrong_by_pair$cells} cells, appendix Table {n_wrong_by_pair$appendix_table})'))}. ",
+    "As with the Prop column above, the error is in the deposited code rather than in the ",
+    "typesetting, and the correction restates what the column contains rather than ",
+    "reprinting four tables to change one digit in each of {n_wrong_cells} cells. No ",
+    "estimate, standard error, confidence interval or p-value is affected: the regressions ",
+    "themselves are fitted on every observation, and only the reported count is short."),
+  str_c("appendix_table_11_n;appendix_table_16_n;appendix_table_18_n;",
+        "appendix_table_25_n")
 ) |>
   mutate(across(c(title, published, corrected, note, claim_ids), as.character))
 
@@ -374,7 +425,7 @@ emit <- function(n) {
 }
 ```
 
-This note lists `r nrow(entries)` corrections to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). The first two are sentences that describe a column of a table incorrectly: one in the supplementary appendix, one in the main text. Four correct a label inside Table 1, Fig. 1 or Fig. 2. The remaining eight are entries of the reference list. **None of them changes any conclusion of the paper**, and none touches an estimate: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
+This note lists `r nrow(entries)` corrections to "Generalizability of heterogeneous treatment effect estimates across samples," published in the *Proceedings of the National Academy of Sciences* 115(49):12441--12446, doi [10.1073/pnas.1808083115](https://doi.org/10.1073/pnas.1808083115). `r str_to_sentence(spell(sum(entries$class == "definition")))` are sentences that describe a column of a table incorrectly: two in the supplementary appendix, one in the main text. `r str_to_sentence(spell(sum(entries$source == "remaster")))` correct a label inside Table 1, Fig. 1 or Fig. 2. The remaining `r spell(sum(entries$source == "reference_audit"))` are entries of the reference list. **None of them changes any conclusion of the paper**, and none touches an estimate: every CATE, standard error, p-value and confidence limit in the article and in all 27 appendix tables reproduces exactly from the deposited archive.
 
 The numbers in the corrected sentences and every number in the notes beneath them are computed from the deposited replication archive ([10.7910/DVN/4WNGEJ](https://doi.org/10.7910/DVN/4WNGEJ)) at the time this document is rendered. The code and output supporting the correction are at [github.com/active-maintenance-aec/coppock_leeper_mullinix_2018](https://github.com/active-maintenance-aec/coppock_leeper_mullinix_2018).
 
@@ -386,9 +437,13 @@ emit(1)
 emit(2)
 ```
 
+```{r entry-16, results="asis"}
+emit(16)
+```
+
 # The tables and figures
 
-The five entries below correct something inside a float rather than a sentence: a column header, a study name, two legend titles and a rounded figure. Each was found by reading this paper's floats against the maintained pipeline's own output while a remastered edition of the article was being prepared. None of them touches an estimate, and every value plotted or tabulated beside them reproduces exactly.
+The `r spell(sum(entries$source == "remaster"))` entries below correct something inside a float rather than a sentence: a column header, a study name, two legend titles and a rounded figure. Each was found by reading this paper's floats against the maintained pipeline's own output while a remastered edition of the article was being prepared. None of them touches an estimate, and every value plotted or tabulated beside them reproduces exactly.
 
 ```{r float-entries, results="asis"}
 walk(entries$entry[entries$source == "remaster"], function(n) {
