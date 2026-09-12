@@ -31,6 +31,14 @@ prop_blocks <- table_a |>
   ) |>
   mutate(divisor = true_share / published_share)
 
+# Every attribute's corrected shares sum to 1.00, which is the property that says
+# the corrected column is right rather than merely different.
+n_prop_groups <- nrow(prop_blocks)
+stopifnot(all(abs(prop_blocks$true_share - 1) < 1e-6))
+
+# The N column moves in the same studies and for the same reason.
+n_n_corrected <- sum(table_a$n != table_a$n_deposit_formula)
+
 # The divisor is the number of terms in the regression that produced the row, so
 # it is two wherever the study fits treatment and an intercept alone.
 n_pairs <- n_distinct(table_a$study_label)
@@ -76,9 +84,13 @@ n_shortfall <- n_cells |>
   filter(differs) |>
   mutate(gap = n - n_deposit_formula) |>
   pull(gap)
+# Entry 16 quotes this row's published and corrected N, and names its panel, so the
+# panel is pinned rather than taken from whichever row sorts first.
 n_example <- n_cells |>
-  filter(differs, appendix_table == min(n_wrong_by_pair$appendix_table)) |>
+  filter(differs, sample == "original",
+         appendix_table == min(n_wrong_by_pair$appendix_table)) |>
   slice(1)
+stopifnot(nrow(n_example) == 1)
 
 # Entry 2: what Table 1's N columns count, against what the analyses are fitted on.
 study_ns <- read_csv(here("maintained", "output", "study_ns.csv"),
@@ -162,10 +174,12 @@ entries <- tribble(
   ~entry, ~class, ~source, ~form, ~title, ~location, ~published, ~corrected, ~note, ~claim_ids,
 
   1, "definition", "pipeline", "full",
-  "The appendix's Prop column is not the proportion the appendix says it is",
+  "The appendix's Prop column is computed with the wrong divisor",
   "published, supplementary appendix",
-  "The Prop column describes what proportion of the subjects in a given experiment belong to the associated covariate class.",
-  "The Prop column describes what proportion of the subjects in a given experiment belong to the associated covariate class, [[divided by the number of terms in the regression that produced the row]].",
+  str_glue("[[{f2(example$prop_deposit_formula)}]] for respondents aged 18 to 39 in ",
+           "appendix Table 1's Original panel"),
+  str_glue("[[{f2(example$prop)}]] for respondents aged 18 to 39 in ",
+           "appendix Table 1's Original panel"),
   str_glue(
     "The divisor is {spell(two_term_divisor)} in {n_two_term_pairs} of the {n_pairs} study ",
     "pairs, whose subgroup regressions carry a treatment indicator and an intercept and ",
@@ -181,10 +195,20 @@ entries <- tribble(
     "The error is in the deposited code rather than in the typesetting: the expression that ",
     "builds the column divides each subgroup's count by a total taken over every row of the ",
     "fitted results rather than over the treatment coefficients alone, and all ",
-    "{nrow(table_a)} printed values reproduce exactly under that expression. The correction ",
-    "restates what the column contains, because the alternative would be to reprint 27 ",
-    "tables in order to change one word in each cell. Nothing in the article's text, tables ",
-    "or figures quotes a Prop value, so no other published number depends on it."),
+    "{nrow(table_a)} printed values reproduce exactly under that expression. ",
+    "\n\n",
+    "This entry used to restate what the column contains rather than correct it, on the ",
+    "ground that the alternative was reprinting 27 tables. Alex, 2026-08-12: \"surely N was ",
+    "meant to say the number of subjects in that covariate class and prop was meant to say ",
+    "what fraction of the total analysis sample that constitutes. the remastered edition ",
+    "should get those numbers right.\" The remastered edition prints the corrected column, ",
+    "computed from the maintained pipeline rather than typed, and each attribute's classes ",
+    "sum to 1.00 across all {n_prop_groups} of them. The N column moves in ",
+    "{n_n_corrected} of the {nrow(table_a)} rows for the same reason, in the four studies ",
+    "whose regressions carry more than a treatment indicator and an intercept. Nothing in ",
+    "the article's text, tables or figures quotes a Prop value, so no other published ",
+    "number depends on it. The entry keeps its number, which is what the append-only rule ",
+    "protects; what changed is the remedy."),
   str_c(
     "appendix_prop_definition;appendix_table_1_prop;appendix_table_2_prop;",
     "appendix_table_3_prop;appendix_table_4_prop;appendix_table_5_prop;",
@@ -381,11 +405,10 @@ entries <- tribble(
   16, "definition", "pipeline", "full",
   "The appendix's N column undercounts wherever a subgroup regression carries a third term",
   "published, supplementary appendix",
-  "The N column gives the number of subjects in the associated covariate class.",
-  str_glue(
-    "The N column gives the number of subjects in the associated covariate class, ",
-    "[[less one for each term in the regression beyond the treatment indicator and the ",
-    "intercept]]."),
+  str_glue("[[{n_example$n_deposit_formula}]] for the {n_example$covariate_class} row ",
+           "in appendix Table {n_example$appendix_table}'s Original panel"),
+  str_glue("[[{n_example$n}]] for the {n_example$covariate_class} row ",
+           "in appendix Table {n_example$appendix_table}'s Original panel"),
   str_glue(
     "The deposit builds the column as the regression's residual degrees of freedom plus ",
     "two, which equals the number of observations only where the fit carries a treatment ",
@@ -402,10 +425,14 @@ entries <- tribble(
     "{knitr::combine_words(str_glue('{n_wrong_by_pair$study_label} ",
     "({n_wrong_by_pair$cells} cells, appendix Table {n_wrong_by_pair$appendix_table})'))}. ",
     "As with the Prop column above, the error is in the deposited code rather than in the ",
-    "typesetting, and the correction restates what the column contains rather than ",
-    "reprinting four tables to change one digit in each of {n_wrong_cells} cells. No ",
-    "estimate, standard error, confidence interval or p-value is affected: the regressions ",
-    "themselves are fitted on every observation, and only the reported count is short."),
+    "typesetting. This entry used to restate what the column contains rather than correct ",
+    "it, on the ground that the alternative was reprinting four tables to change one digit ",
+    "in each of {n_wrong_cells} cells. The remastered edition prints the corrected column ",
+    "instead, computed from the maintained pipeline rather than typed, for the reason entry ",
+    "1 gives. The entry keeps its number, which is what the append-only rule protects; what ",
+    "changed is the remedy. No estimate, standard error, confidence interval or p-value is ",
+    "affected: the regressions themselves are fitted on every observation, and only the ",
+    "reported count is short."),
   str_c("appendix_table_11_n;appendix_table_16_n;appendix_table_18_n;",
         "appendix_table_25_n")
 ) |>
