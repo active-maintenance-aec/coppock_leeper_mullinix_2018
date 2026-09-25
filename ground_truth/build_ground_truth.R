@@ -469,6 +469,17 @@ rewrite_level <- cate_estimates_rewrite |>
   filter(std.error > 1e-12) |>
   mutate(level = 2 * pt((conf.high - estimate) / std.error, df) - 1)
 
+# The same guard, for the claim that every p-value is the two-sided t tail. The
+# intercept of pedullaS18 / pid_3_Independent / original is a mean over two control
+# subjects who share an outcome, so its residuals are exactly zero and its HC2
+# variance is a sum of zero-squared terms. estimatr 2.0 returns NaN there and 1.0.6
+# returned the positive root of a 2e-33 residue, a standard error of 5e-17 and a
+# p-value of 1e-50; a term whose variance is zero up to floating point has no p-value
+# in either sign. filter() drops the NA and the tiny root alike, so the set is the
+# same on every platform. The term is printed nowhere: the appendix reports the Z
+# terms, and not one of those 787 lacks a standard error.
+p_determinate_rewrite <- cate_estimates_rewrite |> filter(std.error > 1e-12)
+
 pull_text <- function(q) text_rewrite$value[text_rewrite$quantity == q]
 
 excludes_one_rewrite <- table_2_rewrite |> filter(ci_low > 1 | ci_high < 1)
@@ -746,10 +757,16 @@ text_rows <- tribble(
 
   "appendix_p_two_sided", "Appendix front matter", "p-values are two-sided",
     NA, NA_character_, NA,
-    all(near(cate_estimates_rewrite$p.value,
-             2 * pt(-abs(cate_estimates_rewrite$statistic), cate_estimates_rewrite$df))),
+    nrow(p_determinate_rewrite) == nrow(cate_estimates_rewrite) - 1 &&
+      all(near(p_determinate_rewrite$p.value,
+               2 * pt(-abs(p_determinate_rewrite$statistic), p_determinate_rewrite$df))),
     NA_character_,
-    "\"All p-values are two-sided and are not corrected for multiple comparisons.\"",
+    str_glue("\"All p-values are two-sided and are not corrected for multiple ",
+             "comparisons.\" Every one of {nrow(p_determinate_rewrite)} determinate ",
+             "p-values is the two-sided t tail. The intercept of the five-subject ",
+             "pedullaS18 Independent cell is excluded and printed nowhere: its two ",
+             "control subjects share an outcome, so the term's HC2 variance is zero up ",
+             "to floating point and it has no p-value in either sign of the residue."),
 
   "appendix_prop_definition", "Appendix front matter", "Prop is the share of subjects in the class",
     NA, NA_character_, NA,

@@ -88,6 +88,14 @@ wallaceS12 <- read_study("wallaceS12_stacked.rds") |> run_cates(covars_all)
 # answer, so the replication CATE for that cell is exactly zero with a zero
 # standard error and the comparison carries no information. The original
 # version of that cell is well behaved; the pair is dropped, not the cell.
+# The Independent cell of the original version is degenerate the other way round and
+# is kept. It holds five subjects, two of them control sharing an outcome, so the
+# intercept is a mean fit with exactly zero residuals; estimatr warns that its HC2
+# variance came out negative and returns NaN for that one standard error, where
+# estimatr 1.0.6 returned the positive root of a 2e-33 residue and a p-value of
+# 1e-50. The CATE itself, the Z term, is well behaved and the intercept is printed
+# nowhere, so nothing is dropped here. Both instruments exclude the term from the
+# claim that every p-value is a two-sided t tail.
 pedullaS18 <- read_study("pedullaS18_stacked.rds") |>
   run_cates(covars_all) |>
   filter(group != "age_3_More than 60")

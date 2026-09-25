@@ -316,15 +316,16 @@ version of each column alongside the corrected one, so the published
 values remain checkable. Under the deposit’s formulas all 787 N cells
 and all 787 Prop cells reproduce exactly.
 
-**A note correcting the article.** Two sentences describe a column of a
-table incorrectly, and a sentence a reader would quote and be misled by
-is a correction to the published record rather than a note about the
-deposit. Both are set out in `coppock_leeper_mullinix_2018_errata.pdf`
-at the root of this repository, with their numbers computed from the
-pipeline when the document is rendered. Neither changes a conclusion,
-and they are numbered here as the note numbers them. **Entry 1** is the
-Prop defect above: the appendix tells the reader what that column
-contains and the sentence is not true of the numbers printed beneath it.
+**A note correcting the article.** Three sentences describe a column of
+a table incorrectly, and a sentence a reader would quote and be misled
+by is a correction to the published record rather than a note about the
+deposit. All 16 entries are set out in
+`coppock_leeper_mullinix_2018_errata.pdf` at the root of this
+repository, with their numbers computed from the pipeline when the
+document is rendered. None of them changes a conclusion, and they are
+numbered here as the note numbers them. **Entry 1** is the Prop defect
+above: the appendix tells the reader what that column contains and the
+sentence is not true of the numbers printed beneath it.
 
 **Entry 2 is the Table 1 sentence set out above**, that Table 1 gives
 “the sample sizes used in the analyses reported here” when its columns
@@ -334,12 +335,13 @@ the published record, which is the same shape as entry 1: a sentence
 telling the reader what a column contains, and not true of the column
 beneath it.
 
-**Entries 3 and 4 are in the reference list**, and no ground truth row
-reaches them: every printed entry was sent whole to Crossref and the
-authoritative record checked back into it. References 1 and 2 both print
-“Druckman JN, Green DP, Kuklinski JH, Arthur L”, where the fourth author
-is Arthur Lupia and his given name has been promoted to a surname. No
-citation in the text points at the wrong work.
+**Entries 3, 4, 9, 10, 11, 12, 13, and 14 are in the reference list**,
+and no ground truth row reaches them: every printed entry was sent whole
+to Crossref and the authoritative record checked back into it.
+References 1 and 2 both print “Druckman JN, Green DP, Kuklinski JH,
+Arthur L”, where the fourth author is Arthur Lupia and his given name
+has been promoted to a surname. No citation in the text points at the
+wrong work.
 
 **Every published estimate still reproduces, and the one internal
 contradiction is that sentence.** Every number the article and its
@@ -713,21 +715,21 @@ Verification of the rewrite
 
 ## R Environment
 
-| Package    | Version |
-|:-----------|:--------|
-| tidyverse  | 2.0.0   |
-| dplyr      | 1.2.1   |
-| tidyr      | 1.3.2   |
-| readr      | 2.2.0   |
-| purrr      | 1.2.2   |
-| stringr    | 1.6.0   |
-| ggplot2    | 4.0.3   |
-| estimatr   | 1.0.6   |
-| broom      | 1.0.13  |
-| deming     | 1.4.1   |
-| lmtest     | 0.9.40  |
-| here       | 1.0.2   |
-| knitr      | 1.51    |
-| kableExtra | 1.4.0   |
+| Package    | Version    |
+|:-----------|:-----------|
+| tidyverse  | 2.0.0      |
+| dplyr      | 1.2.1      |
+| tidyr      | 1.3.2      |
+| readr      | 2.2.0      |
+| purrr      | 1.2.2      |
+| stringr    | 1.6.0      |
+| ggplot2    | 4.0.3      |
+| estimatr   | 2.0.0.9000 |
+| broom      | 1.0.13     |
+| deming     | 1.4.1      |
+| lmtest     | 0.9.40     |
+| here       | 1.0.2      |
+| knitr      | 1.51       |
+| kableExtra | 1.4.0      |
 
 Package versions under R version 4.6.0 (2026-04-24)

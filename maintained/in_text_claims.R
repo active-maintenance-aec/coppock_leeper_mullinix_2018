@@ -334,11 +334,25 @@ emit("discussion_limited_moderation", NA_real_,
 # Appendix ----
 
 # "All p-values are two-sided and are not corrected for multiple comparisons."
+# One term has no p-value to be one- or two-sided. pedullaS18 / pid_3_Independent /
+# original holds five subjects, and its two control subjects share an outcome, so the
+# intercept is a mean fit with exactly zero residuals and its HC2 variance is a sum of
+# zero-squared terms. Which way that residue falls is a floating-point accident:
+# estimatr 2.0 returns NaN, and 1.0.6 returned the positive root of a 2e-33 variance,
+# a standard error of 5e-17 and a p-value of 1e-50. filter() drops the NA and the tiny
+# root alike, so the excluded set is the same on every platform, and 1e-12 is the
+# threshold the confidence-level block below already uses: the residue is 5e-17 and the
+# smallest genuine standard error in these fits is 0.013. The count is pinned so that a
+# second degenerate cell fails this claim rather than being absorbed into the exclusion.
+p_determinate <- cate_estimates |> filter(std.error > 1e-12)
 emit_holds(
   "appendix_p_two_sided",
-  max(abs(cate_estimates$p.value -
-            2 * pt(-abs(cate_estimates$statistic), cate_estimates$df))) < 1e-12,
-  str_glue("Every one of {nrow(cate_estimates)} p-values is the two-sided t tail"))
+  nrow(p_determinate) == nrow(cate_estimates) - 1 &&
+    max(abs(p_determinate$p.value -
+              2 * pt(-abs(p_determinate$statistic), p_determinate$df))) < 1e-12,
+  str_glue("Every one of {nrow(p_determinate)} determinate p-values is the two-sided ",
+           "t tail; the intercept of the five-subject pedullaS18 Independent cell has ",
+           "no standard error"))
 
 # "The Prop column describes what proportion of the subjects in a given experiment
 #  belong to the associated covariate class."
