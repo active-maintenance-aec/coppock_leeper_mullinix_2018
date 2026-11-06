@@ -170,8 +170,15 @@ mturk_spelling <- "MTurk"
 # reference-list and label entries carry none, because a printed author's name is not an
 # extraction claim and has no row. Every id here is checked against the ground truth by
 # build_ground_truth.R.
+#
+# corrected_values runs parallel to claim_ids, one value per id in the same order, carrying
+# the corrected quantity as a number rather than as a sentence, on the claim's scale. Each
+# value comes from the same expression that glues the sentence, so the two cannot be written
+# apart, and the gate below re-checks that each one is still inside the span it belongs to.
+# An entry of a class that changes no quantity, and a note, carries NA.
+values_unresolved <- c()
 entries <- tribble(
-  ~entry, ~class, ~source, ~form, ~title, ~location, ~published, ~corrected, ~note, ~claim_ids,
+  ~entry, ~class, ~source, ~form, ~title, ~location, ~published, ~corrected, ~note, ~claim_ids, ~corrected_values,
 
   1, "definition", "pipeline", "full",
   "The appendix's Prop column is computed with the wrong divisor",
@@ -220,6 +227,7 @@ entries <- tribble(
     "appendix_table_21_prop;appendix_table_22_prop;appendix_table_23_prop;",
     "appendix_table_24_prop;appendix_table_25_prop;appendix_table_26_prop;",
     "appendix_table_27_prop"),
+  NA_character_,
 
   2, "definition", "pipeline", "full",
   "Table 1 reports each study's sample size, not the number of observations the analyses use",
@@ -259,6 +267,7 @@ entries <- tribble(
     "the distinction: Table 1's counts are quoted in the article only as sample sizes, and ",
     "each subgroup's own N is printed beside its estimate throughout the appendix."),
   "methods_table1_sample_sizes",
+  NA_character_,
 
   3, "bibliographic", "reference_audit", "brief",
   "Arthur Lupia's given name is printed as his surname in reference 1",
@@ -269,6 +278,7 @@ entries <- tribble(
         "The fourth author's given name was promoted to a surname and his surname",
         "dropped, so the entry reads as though its fourth author were named Arthur."),
   "",
+  NA_character_,
 
   4, "bibliographic", "reference_audit", "brief",
   "The same author is printed the same way in reference 2",
@@ -279,6 +289,7 @@ entries <- tribble(
         "10.1017/cbo9780511921452.001, the opening chapter they wrote for it:",
         "Druckman, Green, Kuklinski, Lupia."),
   "",
+  NA_character_,
 
   5, "typography", "remaster", "brief",
   "Table 1's column header sets the platform's name differently from the rest of the paper",
@@ -292,6 +303,7 @@ entries <- tribble(
     "header {mturk_spelling} N. Only the published table lowers the T. The correction is to ",
     "a heading and no estimate depends on it."),
   "",
+  NA_character_,
 
   6, "bibliographic", "remaster", "brief",
   "Table 1 names only the first of the fourth study's two authors",
@@ -304,6 +316,7 @@ entries <- tribble(
     "own panel label both read {caprariello}; only Table 1's first column drops the second ",
     "author. The estimates in the row are untouched and reproduce exactly."),
   "",
+  NA_character_,
 
   7, "typography", "remaster", "brief",
   "Fig. 1's legend title sets CATEs in full capitals",
@@ -314,6 +327,7 @@ entries <- tribble(
         "in this figure's own caption one line below the legend. The legend title is the",
         "plotting code's string and the capitals are a slip in it, not a different quantity."),
   "",
+  NA_character_,
 
   8, "typography", "remaster", "brief",
   "Fig. 2's legend title carries the quotation marks of the string that set it, as well as the capitals",
@@ -325,6 +339,7 @@ entries <- tribble(
         "around it. Fig. 1 on the facing page has the same title without the marks.",
         "Neither the marks nor the capitals belong on the page."),
   "",
+  NA_character_,
 
   9, "bibliographic", "reference_audit", "brief",
   "Reference 7 gives the year of the advance version and the volume and pages of the printed one",
@@ -335,6 +350,7 @@ entries <- tribble(
         "January 2016 as volume 60, pages 250 to 267. The entry's own volume and pages are",
         "the printed ones, so the year printed beside them should be the printed year."),
   "",
+  NA_character_,
 
   10, "bibliographic", "reference_audit", "brief",
   "Reference 14 prints a stray digit inside the year",
@@ -345,6 +361,7 @@ entries <- tribble(
         "pages 59 to 80, 2014. The 1 corresponds to no field the entry does not already",
         "carry; the issue number appears to have leaked into the year."),
   "",
+  NA_character_,
 
   11, "bibliographic", "reference_audit", "brief",
   "Reference 16 gives Deming's publisher the wrong city",
@@ -355,6 +372,7 @@ entries <- tribble(
         "Hall handling London; the Open Library record for the 1943 printing gives New York",
         "and London and no Oxford. Wiley's Oxford imprint is decades later than the book."),
   "",
+  NA_character_,
 
   12, "bibliographic", "reference_audit", "brief",
   "Reference 23 gives the year of the advance version and the volume and pages of the printed one",
@@ -365,6 +383,7 @@ entries <- tribble(
         "August 2018 issue. The 2017 in the doi suffix is the date the advance version was",
         "posted, and the entry's volume and pages are the printed ones."),
   "",
+  NA_character_,
 
   13, "bibliographic", "reference_audit", "brief",
   "Reference 38 gives the year of the advance version and the volume and pages of the printed one",
@@ -374,6 +393,7 @@ entries <- tribble(
   paste("Crossref, doi 10.1080/10584609.2015.1038455: published online 27 July 2015 and in",
         "print in April 2016 as Political Communication volume 33, pages 283 to 301."),
   "",
+  NA_character_,
 
   14, "bibliographic", "reference_audit", "brief",
   "Reference 47 prints the wrong volume and drops a digit from the first page",
@@ -385,6 +405,7 @@ entries <- tribble(
         "of the volume and the first page short by a digit, so the range it prints spans",
         "nearly two hundred pages and points at nothing."),
   "",
+  NA_character_,
 
   15, "typography", "remaster", "brief",
   "Table 1 prints one slope to one decimal place where the other twenty-six are to two",
@@ -401,6 +422,7 @@ entries <- tribble(
     "the table changes. It is listed because a remastered edition regenerates the table from ",
     "the code and would otherwise print {hiscox$slope_display} without saying why."),
   "table_1_hiscox_2006_slope",
+  NA_character_,
 
   16, "definition", "pipeline", "full",
   "The appendix's N column undercounts wherever a subgroup regression carries a third term",
@@ -434,11 +456,61 @@ entries <- tribble(
     "affected: the regressions themselves are fitted on every observation, and only the ",
     "reported count is short."),
   str_c("appendix_table_11_n;appendix_table_16_n;appendix_table_18_n;",
-        "appendix_table_25_n")
+        "appendix_table_25_n"),
+  NA_character_
 ) |>
-  mutate(across(c(title, published, corrected, note, claim_ids), as.character))
+  mutate(across(c(title, published, corrected, note, claim_ids, corrected_values), as.character))
 
 stopifnot(nrow(entries) == max(entries$entry), !anyDuplicated(entries$entry))
+
+# Gate: corrected_values agrees with the sentence it was glued into ----
+# The column and the sentence are written from one expression, so they begin in agreement
+# and this gate exists for the edit that separates them: a value moved from one marked span
+# to another, a span reworded to carry a second number, a claim id appended without its
+# value. Each value has to be inside the span it belongs to, matched by position where the
+# counts line up, and inside SOME span where an entry marks a label as well as a number and
+# its spans outnumber its values. The spelled form is tolerated ("four" for 4), and so is a
+# thousands separator.
+marked_spans <- function(x) str_match_all(x, "\\[\\[(.*?)\\]\\]")[[1]][, 2]
+gate_words <- c("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+in_span <- function(v, s) {
+  s <- str_remove_all(s, ",")
+  spelled <- if (str_detect(v, "^[0-9]+$") && as.integer(v) < length(gate_words)) gate_words[as.integer(v) + 1] else v
+  str_detect(s, fixed(v)) || str_detect(s, fixed(spelled))
+}
+
+quantified <- entries |>
+  filter(!is.na(corrected_values)) |>
+  mutate(ids = str_split(claim_ids, ";"), values = str_split(corrected_values, ";"),
+         spans = map(corrected, marked_spans))
+
+stopifnot(all(lengths(quantified$ids) == lengths(quantified$values)))
+
+value_placed <- pmap_lgl(quantified, function(...) {
+  e <- list(...)
+  if (length(e$values) == length(e$spans)) {
+    all(map2_lgl(e$values, e$spans, in_span))
+  } else {
+    all(map_lgl(e$values, \(v) any(map_lgl(e$spans, \(s) in_span(v, s)))))
+  }
+})
+
+if (!all(value_placed)) {
+  print(quantified |> filter(!value_placed) |> select(entry, title, corrected_values, corrected))
+  stop("An entry's corrected_values are not in the spans of its corrected sentence.")
+}
+
+# An entry that changes a quantity has to say which one, and an entry that changes none, or
+# a note, may not carry a value. The class is the declaration and this is where it binds.
+# Empty claim_ids is stored as "" and counts as missing.
+no_claim <- is.na(entries$claim_ids) | entries$claim_ids == ""
+stopifnot(
+  all(!is.na(entries$corrected_values[entries$class == "quantity" & entries$form != "note" & !no_claim &
+                                        !entries$entry %in% values_unresolved])),
+  all(is.na(entries$corrected_values[entries$class != "quantity" | entries$form == "note"])),
+  all(is.na(entries$corrected_values) | !no_claim)
+)
+
 
 # The spine's markup, resolved for this document. Another renderer resolves it differently.
 bold <- function(x) str_replace_all(x, "\\[\\[(.*?)\\]\\]", "**\\1**")
