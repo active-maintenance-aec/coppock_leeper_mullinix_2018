@@ -1,32 +1,32 @@
-float,published_numbers,covered,reproduced_by_rewrite,reproduced_by_archive
-table_1,216,216,216,216
-table_2,80,80,80,80
-figure_1,0,0,NA,NA
-figure_2,0,0,NA,NA
-appendix_table_1,224,224,192,224
-appendix_table_2,175,175,150,175
-appendix_table_3,182,182,156,182
-appendix_table_4,224,224,192,224
-appendix_table_5,182,182,156,182
-appendix_table_6,224,224,192,224
-appendix_table_7,224,224,192,224
-appendix_table_8,140,140,120,140
-appendix_table_9,224,224,192,224
-appendix_table_10,224,224,192,224
-appendix_table_11,224,224,160,224
-appendix_table_12,224,224,192,224
-appendix_table_13,224,224,192,224
-appendix_table_14,224,224,192,224
-appendix_table_15,224,224,192,224
-appendix_table_16,224,224,160,224
-appendix_table_17,140,140,120,140
-appendix_table_18,168,168,124,168
-appendix_table_19,224,224,192,224
-appendix_table_20,210,210,180,210
-appendix_table_21,182,182,156,182
-appendix_table_22,224,224,192,224
-appendix_table_23,224,224,192,224
-appendix_table_24,224,224,192,224
-appendix_table_25,98,98,70,98
-appendix_table_26,224,224,192,224
-appendix_table_27,224,224,192,224
+float,published_numbers,covered,reproduced_by_rewrite,reproduced_by_archive,plotted,plotted_reproduced,note
+Table 1,216,216,216,216,NA,NA,NA
+Table 2,80,80,80,80,NA,NA,NA
+Figure 1,0,0,0,0,393,393,"Prints no numbers on its face; plotted counts the subgroup comparisons, each a point with an interval on both axes."
+Figure 2,0,0,0,0,393,393,"The same comparisons as Figure 1, panelled by study rather than by subgroup."
+Appendix Table 1,224,224,192,224,NA,NA,NA
+Appendix Table 2,175,175,150,175,NA,NA,NA
+Appendix Table 3,182,182,156,182,NA,NA,NA
+Appendix Table 4,224,224,192,224,NA,NA,NA
+Appendix Table 5,182,182,156,182,NA,NA,NA
+Appendix Table 6,224,224,192,224,NA,NA,NA
+Appendix Table 7,224,224,192,224,NA,NA,NA
+Appendix Table 8,140,140,120,140,NA,NA,NA
+Appendix Table 9,224,224,192,224,NA,NA,NA
+Appendix Table 10,224,224,192,224,NA,NA,NA
+Appendix Table 11,224,224,160,224,NA,NA,NA
+Appendix Table 12,224,224,192,224,NA,NA,NA
+Appendix Table 13,224,224,192,224,NA,NA,NA
+Appendix Table 14,224,224,192,224,NA,NA,NA
+Appendix Table 15,224,224,192,224,NA,NA,NA
+Appendix Table 16,224,224,160,224,NA,NA,NA
+Appendix Table 17,140,140,120,140,NA,NA,NA
+Appendix Table 18,168,168,124,168,NA,NA,NA
+Appendix Table 19,224,224,192,224,NA,NA,NA
+Appendix Table 20,210,210,180,210,NA,NA,NA
+Appendix Table 21,182,182,156,182,NA,NA,NA
+Appendix Table 22,224,224,192,224,NA,NA,NA
+Appendix Table 23,224,224,192,224,NA,NA,NA
+Appendix Table 24,224,224,192,224,NA,NA,NA
+Appendix Table 25,98,98,70,98,NA,NA,NA
+Appendix Table 26,224,224,192,224,NA,NA,NA
+Appendix Table 27,224,224,192,224,NA,NA,NA

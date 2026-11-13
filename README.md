@@ -21,7 +21,10 @@
 - [Rewrite Verification](#rewrite-verification)
 - [R Environment](#r-environment)
 
-**Archived at Zenodo:** [doi:10.5281/zenodo.24168371](https://doi.org/10.5281/zenodo.24168371). This DOI always resolves to the latest release of the maintained version.
+**Archived at Zenodo:**
+[doi:10.5281/zenodo.24168371](https://doi.org/10.5281/zenodo.24168371).
+This DOI always resolves to the latest release of the maintained
+version.
 
 *Drafted by Claude Opus 5 under the supervision of Alex Coppock.*
 
@@ -87,16 +90,16 @@ checksums, and produces every table and figure into
 can be run on their own, in the order `run_all.R` uses, since each reads
 its inputs from `maintained/output/`.
 
-Required packages: tidyverse, estimatr, broom, deming, lmtest, knitr,
-kableExtra, here. Paths resolve through `here`, so nothing depends on
-the working directory and the scripts work equally well under `Rscript`
-outside RStudio. A successful run overwrites `maintained/output/`, which
-is committed: **`git diff` on that folder is the reproduction check**,
-and every file in it comes back byte-identical, the two figure PDFs
-included. A PDF ordinarily records the time it was written, which would
-make those two differ on every run for no reason a reader cares about,
-so `run_all.R` blanks the embedded `/CreationDate` and `/ModDate` before
-the ground truth is built.
+Required packages: tidyverse, estimatr, broom, deming, lmtest, excheckr,
+knitr, kableExtra, here. Paths resolve through `here`, so nothing
+depends on the working directory and the scripts work equally well under
+`Rscript` outside RStudio. A successful run overwrites
+`maintained/output/`, which is committed: **`git diff` on that folder is
+the reproduction check**, and every file in it comes back
+byte-identical, the two figure PDFs included. A PDF ordinarily records
+the time it was written, which would make those two differ on every run
+for no reason a reader cares about, so `run_all.R` blanks the embedded
+`/CreationDate` and `/ModDate` before the ground truth is built.
 
 ## Paper Overview
 
@@ -337,7 +340,7 @@ the published record, which is the same shape as entry 1: a sentence
 telling the reader what a column contains, and not true of the column
 beneath it.
 
-**Entries 3, 4, 9, 10, 11, 12, 13, and 14 are in the reference list**,
+**Entries 8, 9, 11, 12, 13, 14, 15, and 16 are in the reference list**,
 and no ground truth row reaches them: every printed entry was sent whole
 to Crossref and the authoritative record checked back into it.
 References 1 and 2 both print “Druckman JN, Green DP, Kuklinski JH,
@@ -568,39 +571,39 @@ alt="Figure 2: within-study correspondence of CATEs, as the rewrite produces it.
 
 | Section | Quantity | Published | Rewrite | Match |
 |:---|:---|---:|---:|:---|
-| Abstract | Study pairs analysed | 27 | 27 | yes |
-| Abstract | Individual survey responses | 101745 | 101745 | yes |
-| Significance statement | Survey experiments replicated | 27 | 27 | yes |
-| Significance statement | Individual survey responses | 101745 | 101745 | yes |
-| Methods and Materials | Original-replication pairs reanalysed | 27 | 27 | yes |
-| Methods and Materials | Distinct subgroups | 16 | 16 | yes |
-| Methods and Materials | Separate experiments | 54 | 54 | yes |
-| Methods and Materials | Study pairs, same sentence | 27 | 27 | yes |
-| Methods and Materials | Pretreatment attributes | 6 | 6 | yes |
-| Methods and Materials | Largest number of categories per attribute | 3 | 3 | yes |
-| Methods and Materials | Youngest age band, lower bound | 18 | 18 | yes |
-| Methods and Materials | Youngest age band, upper bound | 39 | 39 | yes |
-| Methods and Materials | Middle age band, lower bound | 40 | 40 | yes |
-| Methods and Materials | Middle age band, upper bound | 59 | 59 | yes |
-| Methods and Materials | Oldest age band, lower bound | 60 | 60 | yes |
-| Results footnote | Significance threshold for the difference | 0.05 | 0.05 | yes |
-| Results | Comparison opportunities | 393 | 393 | yes |
-| Results | Difference-in-CATEs significant | 59 | 59 | yes |
-| Results | Share of comparisons significant | 15 | 15.01 | yes |
-| Results | Sign disagreements with both versions significant | 0 | 0 | yes |
-| Results | Comparison opportunities, same sentence | 393 | 393 | yes |
-| Results | CATEs significant in the original version | 156 | 156 | yes |
-| Results | Of those, significant in the MTurk version | 118 | 118 | yes |
-| Results | CATEs indistinguishable from zero in the original version | 237 | 237 | yes |
-| Results | Of those, indistinguishable in the MTurk version | 158 | 158 | yes |
-| Results | Overall significance match rate | 70 | 70.23 | yes |
-| Results | Smallest across-study slope | 0.71 | 0.71 | yes |
-| Results | Largest across-study slope | 1.01 | 1.01 | yes |
-| Results | Across-study intervals excluding one | 1 | 1 | yes |
-| Results | F tests failing to reject at 0.05 | 25 | 25 | yes |
-| Results | Study pairs offering a joint F test | 27 | 27 | yes |
-| Discussion | Pairs of survey experiments | 27 | 27 | yes |
-| Appendix table headers | Confidence level of the CATE intervals | 95 | 95.00 | yes |
+| Abstract (p. 1) | Study pairs analysed | 27 | 27 | yes |
+| Abstract (p. 1) | Individual survey responses | 101745 | 101745 | yes |
+| Significance statement (p. 1) | Survey experiments replicated | 27 | 27 | yes |
+| Significance statement (p. 1) | Individual survey responses | 101745 | 101745 | yes |
+| Methods and Materials (p. 1) | Original-replication pairs reanalysed | 27 | 27 | yes |
+| Methods and Materials (p. 1) | Distinct subgroups | 16 | 16 | yes |
+| Methods and Materials (p. 2) | Separate experiments | 54 | 54 | yes |
+| Methods and Materials (p. 2) | Study pairs, same sentence | 27 | 27 | yes |
+| Methods and Materials (p. 2) | Pretreatment attributes | 6 | 6 | yes |
+| Methods and Materials (p. 2) | Largest number of categories per attribute | 3 | 3 | yes |
+| Methods and Materials (p. 2) | Youngest age band, lower bound | 18 | 18 | yes |
+| Methods and Materials (p. 2) | Youngest age band, upper bound | 39 | 39 | yes |
+| Methods and Materials (p. 2) | Middle age band, lower bound | 40 | 40 | yes |
+| Methods and Materials (p. 2) | Middle age band, upper bound | 59 | 59 | yes |
+| Methods and Materials (p. 2) | Oldest age band, lower bound | 60 | 60 | yes |
+| Results footnote (p. 2) | Significance threshold for the difference | 0.05 | 0.05 | yes |
+| Results (p. 2) | Comparison opportunities | 393 | 393 | yes |
+| Results (p. 2) | Difference-in-CATEs significant | 59 | 59 | yes |
+| Results (p. 2) | Share of comparisons significant | 15 | 15.01 | yes |
+| Results (p. 2) | Sign disagreements with both versions significant | 0 | 0 | yes |
+| Results (p. 2) | Comparison opportunities, same sentence | 393 | 393 | yes |
+| Results (p. 2) | CATEs significant in the original version | 156 | 156 | yes |
+| Results (p. 2) | Of those, significant in the MTurk version | 118 | 118 | yes |
+| Results (p. 2) | CATEs indistinguishable from zero in the original version | 237 | 237 | yes |
+| Results (p. 2) | Of those, indistinguishable in the MTurk version | 158 | 158 | yes |
+| Results (p. 2) | Overall significance match rate | 70 | 70.23 | yes |
+| Results (p. 3) | Smallest across-study slope | 0.71 | 0.71 | yes |
+| Results (p. 3) | Largest across-study slope | 1.01 | 1.01 | yes |
+| Results (p. 3) | Across-study intervals excluding one | 1 | 1 | yes |
+| Results (p. 4) | F tests failing to reject at 0.05 | 25 | 25 | yes |
+| Results (p. 4) | Study pairs offering a joint F test | 27 | 27 | yes |
+| Discussion (p. 5) | Pairs of survey experiments | 27 | 27 | yes |
+| Appendix table headers (54 panels) | Confidence level of the CATE intervals | 95 | 95.00 | yes |
 
 Every quantity the article states in prose
 
@@ -662,7 +665,8 @@ hypothetical match rates of 100 per cent are not estimates at all.
 
 **`maintained/in_text_claims.R` is the second instrument.** It
 recomputes each of those claims from `maintained/output/` by a path of
-its own and prints `CLAIM <id> = <value> || <label>` for each. Where
+its own and prints `CLAIM <id> = <value> || [verdict] <label>` for each,
+scored by `excheckr` against the extraction and the errata spine. Where
 `build_ground_truth.R` reaches a quantity through
 `text_correspondence_summary.csv`, the claims file goes back to the
 estimates that summary was built from, so the two derivations are
@@ -717,21 +721,21 @@ Verification of the rewrite
 
 ## R Environment
 
-| Package    | Version    |
-|:-----------|:-----------|
-| tidyverse  | 2.0.0      |
-| dplyr      | 1.2.1      |
-| tidyr      | 1.3.2      |
-| readr      | 2.2.0      |
-| purrr      | 1.2.2      |
-| stringr    | 1.6.0      |
-| ggplot2    | 4.0.3      |
-| estimatr   | 2.0.0.9000 |
-| broom      | 1.0.13     |
-| deming     | 1.4.1      |
-| lmtest     | 0.9.40     |
-| here       | 1.0.2      |
-| knitr      | 1.51       |
-| kableExtra | 1.4.0      |
+| Package    | Version |
+|:-----------|:--------|
+| tidyverse  | 2.0.0   |
+| dplyr      | 1.2.1   |
+| tidyr      | 1.3.2   |
+| readr      | 2.2.0   |
+| purrr      | 1.2.2   |
+| stringr    | 1.6.0   |
+| ggplot2    | 4.0.3   |
+| estimatr   | 2.0.1   |
+| broom      | 1.0.13  |
+| deming     | 1.4.1   |
+| lmtest     | 0.9.40  |
+| here       | 1.0.2   |
+| knitr      | 1.52    |
+| kableExtra | 1.4.1   |
 
-Package versions under R version 4.6.0 (2026-04-24)
+Package versions under R version 4.6.2 (2026-10-29)

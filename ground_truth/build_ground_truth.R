@@ -90,6 +90,9 @@ stopifnot(
   all(published_claims$needs_block %in% c(TRUE, FALSE)),
   all(is.na(published_claims$comparison) |
         published_claims$comparison %in% c("==", "<", ">", "<=", ">=", "approx")),
+  all(is.na(published_claims$comparison) == is.na(published_claims$value_paper)),
+  all(is.na(published_claims$expect) |
+        published_claims$expect %in% c("range", "derived", "absent", "shape")),
   all(published_claims$needs_block[
     published_claims$claim_type %in% c("pipeline", "descriptive")])
 )
@@ -110,10 +113,12 @@ round_trips <- function(value_paper, digits) {
 
 round_trips(published_claims$value_paper, published_claims$digits)
 
-# The precision of a prose claim comes from the extraction and from nowhere else.
+# The precision of a prose claim comes from the extraction and from nowhere else. A
+# claim that prints no number has no precision.
 prose_digits <- function(id) {
-  d <- published_claims$digits[match(id, published_claims$claim_id)]
-  stopifnot(!any(is.na(d)))
+  row <- match(id, published_claims$claim_id)
+  d <- published_claims$digits[row]
+  stopifnot(!any(is.na(row)), !any(is.na(d) & !is.na(published_claims$value_paper[row])))
   d
 }
 
@@ -841,7 +846,8 @@ if (any(clean & !is.na(ground_truth$defect_locus))) {
 }
 stopifnot(all(is.na(ground_truth$defect_locus) |
                 ground_truth$defect_locus %in%
-                c("paper_internal", "archive", "environment", "rewrite", "unresolved")))
+                c("paper_internal", "archive", "environment", "rewrite", "unresolved",
+                  "upstream")))
 
 # The extraction against the ground truth ------------------------------------------------
 # Two hand transcriptions of the same pages, and nothing else compares them.
@@ -862,45 +868,87 @@ if (!all(normalise_printed(reconcile$extraction) ==
 }
 
 # Float coverage --------------------------------------------------------------------------
-# The extraction records how many numbers each published float prints; the ground
-# truth records how many of them are covered and how many reproduce. Every float
-# reads its own rows.
+# One row per published float, labelled as the article prints it. The extraction records
+# how many numbers each float prints; the ground truth records how many of them are
+# covered and how many reproduce. A figure prints no numbers on its face, so what it
+# carries is a count of plotted comparisons, reproduced when every one of its six
+# coordinates and its significance class agree with the deposit's own CLM_scatter_df.rds.
 
 appendix_covered <- appendix_cells |>
   summarize(
-    published_numbers = 7 * n(),
-    covered = 7 * n(),
-    reproduced_by_rewrite = 5 * sum(estimation_rewrite) + sum(n_rewrite_ok) +
-      sum(prop_rewrite_ok),
-    reproduced_by_archive = 5 * sum(estimation_script) + sum(n_script_ok) +
-      sum(prop_script_ok),
+    published_numbers = 7L * n(),
+    covered = 7L * n(),
+    reproduced_by_rewrite = as.integer(5 * sum(estimation_rewrite) + sum(n_rewrite_ok) +
+                                         sum(prop_rewrite_ok)),
+    reproduced_by_archive = as.integer(5 * sum(estimation_script) + sum(n_script_ok) +
+                                         sum(prop_script_ok)),
     .by = appendix_table
   ) |>
-  transmute(float = paste0("appendix_table_", appendix_table),
+  transmute(float = paste0("Appendix Table ", appendix_table),
             published_numbers, covered, reproduced_by_rewrite, reproduced_by_archive)
 
-main_covered <- tribble(
-  ~float, ~published_numbers, ~covered, ~reproduced_by_rewrite, ~reproduced_by_archive,
-  "table_1", nrow(table_1_rows), nrow(table_1_rows),
-    sum(ground_truth$match_rewrite[ground_truth$table_figure == "Table 1"]),
-    sum(ground_truth$match[ground_truth$table_figure == "Table 1"]),
-  "table_2", nrow(table_2_rows), nrow(table_2_rows),
-    sum(ground_truth$match_rewrite[ground_truth$table_figure == "Table 2"]),
-    sum(ground_truth$match[ground_truth$table_figure == "Table 2"]),
-  "figure_1", 0L, 0L, NA_integer_, NA_integer_,
-  "figure_2", 0L, 0L, NA_integer_, NA_integer_
+main_covered <- ground_truth |>
+  filter(table_figure %in% c("Table 1", "Table 2")) |>
+  summarize(
+    published_numbers = n(),
+    covered = sum(!is.na(value_paper)),
+    reproduced_by_rewrite = sum(match_rewrite == 1, na.rm = TRUE),
+    reproduced_by_archive = sum(match == 1, na.rm = TRUE),
+    .by = table_figure
+  ) |>
+  rename(float = table_figure)
+
+plotted_coordinates <- c("estimate_mt", "conf.low_mt", "conf.high_mt",
+                         "estimate_original", "conf.low_original", "conf.high_original")
+
+plotted_reproduced <- function(figure_rewrite) {
+  joined <- figure_rewrite |>
+    inner_join(
+      scatter_script |>
+        transmute(study_label, group_label = as.character(group_label),
+                  difference = as.character(`Difference in CATES`),
+                  across(all_of(plotted_coordinates))),
+      by = c("study_label", "group_label"),
+      suffix = c("", "_script"),
+      relationship = "one-to-one"
+    )
+  agrees_all <- map(plotted_coordinates, \(v) {
+    abs(joined[[v]] - joined[[paste0(v, "_script")]]) < 1e-12
+  }) |>
+    reduce(`&`)
+  sum(agrees_all & joined$difference == joined$difference_script)
+}
+
+figure_covered <- tibble(
+  float = c("Figure 1", "Figure 2"),
+  published_numbers = 0L,
+  covered = 0L,
+  reproduced_by_rewrite = 0L,
+  reproduced_by_archive = 0L,
+  plotted = c(nrow(figure_1_rewrite), nrow(figure_2_rewrite)),
+  plotted_reproduced = c(plotted_reproduced(figure_1_rewrite),
+                         plotted_reproduced(figure_2_rewrite)),
+  note = c("Prints no numbers on its face; plotted counts the subgroup comparisons, each a point with an interval on both axes.",
+           "The same comparisons as Figure 1, panelled by study rather than by subgroup.")
 )
 
-float_coverage <- bind_rows(main_covered, appendix_covered)
+float_coverage <- bind_rows(main_covered, figure_covered, appendix_covered) |>
+  mutate(across(c(published_numbers, covered, reproduced_by_rewrite,
+                  reproduced_by_archive, plotted, plotted_reproduced), as.integer)) |>
+  select(float, published_numbers, covered, reproduced_by_rewrite, reproduced_by_archive,
+         plotted, plotted_reproduced, note)
 
+# The extraction names each float by the location it prints at.
 declared_floats <- published_claims |>
   filter(str_starts(claim_id, "float_")) |>
-  transmute(float = str_remove(claim_id, "^float_"),
+  transmute(float = str_remove(location, " \\(p\\. \\d+\\)$"),
             declared = if_else(is.na(value_paper), 0L, as.integer(value_paper)))
 
 float_check <- declared_floats |> full_join(float_coverage, by = "float")
 stopifnot(nrow(float_check) == nrow(declared_floats),
-          !any(is.na(float_check$published_numbers)))
+          nrow(float_coverage) == nrow(declared_floats),
+          !any(is.na(float_check$published_numbers)),
+          all(float_coverage$covered == float_coverage$published_numbers))
 if (!all(float_check$declared == float_check$published_numbers)) {
   print(float_check |> filter(declared != published_numbers), n = Inf)
   stop("A float prints a different number of cells from the count the extraction declares.")
@@ -918,7 +966,7 @@ claims_output <- capture.output(
 )
 
 printed <- claims_output |>
-  str_subset("^CLAIM ") |>
+  str_subset("^CLAIM [^ ]+ = ") |>
   str_match("^CLAIM ([^ ]+) = (.*?) \\|\\| (.*)$")
 printed_claims <- tibble(claim_id = printed[, 2], printed_value = printed[, 3],
                          label = printed[, 4])
@@ -942,14 +990,14 @@ if (nrow(printed_claims) != nrow(required)) {
 # is wrong.
 cross <- printed_claims |>
   left_join(ground_truth |> select(claim_id, value_rewrite, holds), by = "claim_id") |>
-  left_join(published_claims |> select(claim_id, digits, comparison, claim_type),
+  left_join(published_claims |> select(claim_id, digits, expect, claim_type),
             by = "claim_id") |>
   mutate(
     expected = pmap_chr(
-      list(claim_type, holds, value_rewrite, digits, comparison),
-      function(type, holds_value, value, digits, comparison) {
-        if (!is.na(comparison) && comparison == "approx") return(NA_character_)
-        if (type == "descriptive") return(as.character(holds_value))
+      list(claim_type, holds, value_rewrite, digits, expect),
+      function(type, holds_value, value, digits, expect) {
+        if (!is.na(expect) && expect == "shape") return(NA_character_)
+        if (type == "descriptive") return(as.character(as.integer(holds_value)))
         if (is.na(value) || is.na(digits)) return(NA_character_)
         render_at(value, digits)
       }
@@ -967,19 +1015,80 @@ if (!all(cross$agrees)) {
 # that has since been renamed, and a published correction pointing at a row that is not in the
 # table is a dangling reference the build should refuse to carry.
 
-errata_path <- here::here("errata_entries.csv")
-if (file.exists(errata_path)) {
-  errata_spine <- read_csv(errata_path, show_col_types = FALSE)
-  cited_claim_ids <- errata_spine$claim_ids |>
-    str_split(";") |>
-    unlist() |>
-    str_trim()
-  cited_claim_ids <- cited_claim_ids[!is.na(cited_claim_ids) & cited_claim_ids != ""]
-  if (length(setdiff(cited_claim_ids, ground_truth$claim_id)) > 0) {
-    print(setdiff(cited_claim_ids, ground_truth$claim_id))
-  }
-  stopifnot(length(setdiff(cited_claim_ids, ground_truth$claim_id)) == 0)
+errata_spine <- read_csv(here::here("errata_entries.csv"), show_col_types = FALSE)
+cited_claim_ids <- errata_spine$claim_ids |>
+  str_split(";") |>
+  unlist() |>
+  str_trim()
+cited_claim_ids <- cited_claim_ids[!is.na(cited_claim_ids) & cited_claim_ids != ""]
+if (length(setdiff(cited_claim_ids, ground_truth$claim_id)) > 0) {
+  print(setdiff(cited_claim_ids, ground_truth$claim_id))
 }
+stopifnot(length(setdiff(cited_claim_ids, ground_truth$claim_id)) == 0)
+
+# Claim type, precision and location, carried from the extraction ----------------------------
+# A row the extraction names takes its claim type, its precision and its location from
+# published_claims.csv. A float cell has no extraction row of its own, so it is a pipeline
+# quantity, its precision is read off the string the article prints, and it keeps the
+# float's label as printed.
+ground_truth <- ground_truth |>
+  left_join(published_claims |>
+              select(claim_id, claim_type, extracted_digits = digits,
+                     extracted_location = location),
+            by = "claim_id") |>
+  mutate(in_extraction = claim_id %in% published_claims$claim_id)
+
+# The builder's own precision for a row has to agree with the extraction's wherever both
+# exist; the prose rows take theirs from the extraction above, so this holds by construction
+# and the check is what keeps it holding.
+digit_disagreement <- ground_truth |>
+  filter(in_extraction, !is.na(digits) | !is.na(extracted_digits),
+         is.na(digits) | is.na(extracted_digits) | digits != extracted_digits)
+if (nrow(digit_disagreement) > 0) {
+  print(digit_disagreement |> select(claim_id, value_paper, digits, extracted_digits))
+  stop("A ground truth row carries a digit count the extraction does not.")
+}
+
+ground_truth <- ground_truth |>
+  mutate(
+    claim_type = if_else(in_extraction, claim_type, "pipeline"),
+    digits = as.integer(if_else(in_extraction, extracted_digits,
+                                excheckr::claim_digits(value_paper))),
+    location = if_else(in_extraction, extracted_location, table_figure)
+  )
+
+stopifnot(!anyNA(ground_truth$claim_type), !anyNA(ground_truth$location),
+          all(ground_truth$digits[!ground_truth$in_extraction] ==
+                printed_decimals(ground_truth$value_paper[!ground_truth$in_extraction]) |
+                is.na(ground_truth$value_paper[!ground_truth$in_extraction])))
+
+# Disposition: what became of each defect ------------------------------------------------------
+# corrected_here is computed from the errata spine and never typed. No other judgment has been
+# recorded for this paper, so a defect the spine does not name stays NA, and the gate below
+# stops on a paper_internal row left in that state.
+ground_truth <- ground_truth |>
+  mutate(
+    disposition = case_when(
+      is.na(defect_locus) ~ NA_character_,
+      claim_id %in% cited_claim_ids ~ "corrected_here",
+      .default = NA_character_
+    ),
+    disposition_reason = NA_character_
+  )
+
+undisposed <- ground_truth |> filter(defect_locus == "paper_internal", is.na(disposition))
+if (nrow(undisposed) > 0) {
+  print(undisposed |> select(claim_id, location, claim), n = nrow(undisposed))
+  stop(nrow(undisposed), " paper_internal rows carry no disposition.")
+}
+print(ground_truth |> filter(!is.na(defect_locus)) |> count(defect_locus, disposition))
+
+# The canonical column order ------------------------------------------------------------------
+ground_truth <- ground_truth |>
+  mutate(across(c(match, match_rewrite, holds), as.logical)) |>
+  select(paper_id, claim_id, location, claim_type, claim, value_paper, digits, value_script,
+         match, value_rewrite, match_rewrite, holds, defect_locus, disposition,
+         disposition_reason, notes)
 
 # Write ---------------------------------------------------------------------------------------
 
@@ -997,7 +1106,7 @@ print(paste("match_rewrite = 1:", sum(ground_truth$match_rewrite == 1, na.rm = T
 print(ground_truth |> count(holds))
 print(ground_truth |> filter(!is.na(defect_locus)) |> count(defect_locus))
 print(ground_truth |> filter(match_rewrite == 0) |>
-        select(table_figure, claim, value_paper, value_rewrite, defect_locus),
+        select(location, claim, value_paper, value_rewrite, defect_locus),
       n = 100, width = 200)
 print(paste(nrow(printed_claims), "claims printed by the second instrument against",
             nrow(required), "extraction rows requiring a block;",

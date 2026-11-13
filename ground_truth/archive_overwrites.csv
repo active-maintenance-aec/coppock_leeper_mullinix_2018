@@ -1,0 +1,15 @@
+pass,file,effect,matches_deposit
+as_shipped,CLM_PNAS_FINAL_FIGURE1.pdf,overwritten,FALSE
+as_shipped,CLM_PNAS_FINAL_FIGURE2.pdf,overwritten,FALSE
+as_shipped,CLM_study_ns_df.rds,overwritten,TRUE
+as_shipped,group_table.tex,overwritten,TRUE
+stripped,CLM_study_labels_df.rds,withheld,NA
+stripped,CLM_study_ns_df.rds,withheld,NA
+stripped,CLM_results.rds,withheld,NA
+stripped,CLM_scatter_df.rds,withheld,NA
+stripped,CLM_f_tests_df.rds,withheld,NA
+stripped,CLM_PNAS_FINAL_FIGURE1.pdf,withheld,NA
+stripped,CLM_PNAS_FINAL_FIGURE2.pdf,withheld,NA
+stripped,group_table.tex,withheld,NA
+stripped,study_table.tex,withheld,NA
+stripped,appendix_tables.tex,withheld,NA

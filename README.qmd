@@ -71,7 +71,7 @@ n_prose_rows <- gt |>
   nrow()
 n_no_published_value <- sum(is.na(gt$value_paper))
 n_holds <- sum(!is.na(gt$holds))
-n_approx <- sum(published_claims$comparison == "approx", na.rm = TRUE)
+n_approx <- sum(published_claims$expect == "shape", na.rm = TRUE)
 
 # A count that opens a sentence is spelled out, and it is still a count.
 spell <- function(n) {
@@ -108,7 +108,7 @@ source("run_all.R")
 
 That fetches the deposited archive from Dataverse, verifies its `r nrow(manifest)` checksums, and produces every table and figure into `maintained/output/`. It takes about half a minute. Individual scripts can be run on their own, in the order `run_all.R` uses, since each reads its inputs from `maintained/output/`.
 
-Required packages: tidyverse, estimatr, broom, deming, lmtest, knitr, kableExtra, here. Paths resolve through `here`, so nothing depends on the working directory and the scripts work equally well under `Rscript` outside RStudio. A successful run overwrites `maintained/output/`, which is committed: **`git diff` on that folder is the reproduction check**, and every file in it comes back byte-identical, the two figure PDFs included. A PDF ordinarily records the time it was written, which would make those two differ on every run for no reason a reader cares about, so `run_all.R` blanks the embedded `/CreationDate` and `/ModDate` before the ground truth is built.
+Required packages: tidyverse, estimatr, broom, deming, lmtest, excheckr, knitr, kableExtra, here. Paths resolve through `here`, so nothing depends on the working directory and the scripts work equally well under `Rscript` outside RStudio. A successful run overwrites `maintained/output/`, which is committed: **`git diff` on that folder is the reproduction check**, and every file in it comes back byte-identical, the two figure PDFs included. A PDF ordinarily records the time it was written, which would make those two differ on every run for no reason a reader cares about, so `run_all.R` blanks the embedded `/CreationDate` and `/ModDate` before the ground truth is built.
 
 ## Paper Overview
 
@@ -248,9 +248,9 @@ comma_and <- function(x) {
 ```{r gt-coverage}
 coverage <- gt |>
   mutate(group = case_when(
-    str_starts(table_figure, "Appendix Table ") ~ "Appendix Tables 1 to 27",
-    str_starts(table_figure, "Figure") ~ "Figures 1 and 2",
-    table_figure %in% c("Table 1", "Table 2") ~ table_figure,
+    str_detect(location, "^Appendix Table [0-9]+$") ~ "Appendix Tables 1 to 27",
+    str_detect(location, "^Figure [0-9]+$") ~ "Figures 1 and 2",
+    str_detect(location, "^Table [0-9]+$") ~ location,
     .default = "In-text quantities"
   )) |>
   summarize(
@@ -422,7 +422,7 @@ intext <- gt |>
   filter(claim_id %in% prose_claims$claim_id, !is.na(value_paper)) |>
   mutate(rewrite_digits = if_else(value_rewrite == round(value_rewrite),
                                   0L, as.integer(pmax(digits, 2)))) |>
-  transmute(Section = table_figure,
+  transmute(Section = location,
             Quantity = claim,
             Published = value_paper,
             Rewrite = map2_chr(value_rewrite, rewrite_digits,
@@ -466,7 +466,7 @@ Alongside these `r nrow(prose_claims)` prose claims the extraction carries `r nr
 
 A claim needs a block when a block can print something true. Every `pipeline` and `descriptive` claim does, and so does every definitional claim the pipeline can reach: the age band boundaries come out of the subgroup labels the data carry, the confidence level out of the interval half widths, and the significance threshold out of the point at which the classification of the 393 differences changes. The claims that need no block are the ones nothing in the deposit could confirm or refute, and they are verified where they are used instead: the level of the jackknife interval is `deming()`'s own `conf` argument, `HC2` is `lm_robust`'s default and is visible in `run_cates()`, and the hypothetical match rates of 100 per cent are not estimates at all.
 
-**`maintained/in_text_claims.R` is the second instrument.** It recomputes each of those claims from `maintained/output/` by a path of its own and prints `CLAIM <id> = <value> || <label>` for each. Where `build_ground_truth.R` reaches a quantity through `text_correspondence_summary.csv`, the claims file goes back to the estimates that summary was built from, so the two derivations are separate and a disagreement means one of them is wrong. Neither file refits anything; estimation happens once, in the analysis scripts, and only derivation is duplicated.
+**`maintained/in_text_claims.R` is the second instrument.** It recomputes each of those claims from `maintained/output/` by a path of its own and prints `CLAIM <id> = <value> || [verdict] <label>` for each, scored by `excheckr` against the extraction and the errata spine. Where `build_ground_truth.R` reaches a quantity through `text_correspondence_summary.csv`, the claims file goes back to the estimates that summary was built from, so the two derivations are separate and a disagreement means one of them is wrong. Neither file refits anything; estimation happens once, in the analysis scripts, and only derivation is duplicated.
 
 **The coverage gate is the last step of `build_ground_truth.R`.** It runs the claims file as a program in its own environment, captures its output, and stops the build unless the `r n_blocks` printed claim identifiers are exactly the `r n_blocks` the extraction requires and every printed value matches the ground truth's own answer, rendered at the precision the article prints. The precision itself lives only in the extraction, so the two instruments cannot name different ones, and the extraction's stored strings are checked against that precision before anything consumes them. Reading the file as text would not do: a block that errors, or one that computes silently and prints nothing, satisfies a textual check completely.
 

@@ -1,0 +1,17 @@
+pass,script,role,exit_status,outcome,stopped_at
+as_shipped,CLM_study_labels.R,cleaning,1,error,"Error in file(file, ...) : argument ""file"" is missing, with no default Calls: write_rds"
+as_shipped,CLM_study_summaries.R,analysis,0,clean,NA
+as_shipped,CLM_estimate_CATEs.R,analysis,1,error,"Error in file(file, ...) : argument ""file"" is missing, with no default Calls: write_rds"
+as_shipped,CLM_f_tests.R,analysis,1,error,"Error in file(file, ...) : argument ""file"" is missing, with no default Calls: write_rds"
+as_shipped,CLM_figures.R,analysis,0,clean,NA
+as_shipped,CLM_tables.R,analysis,1,error,Error in `summarize()`: ℹ In argument: `min(estimate)`. Caused by error: ! object 'estimate' not found
+as_shipped,CLM_in_text_figures.R,analysis,0,clean,NA
+as_shipped,CLM_appendix.R,analysis,1,error,"Error in read_rds(path = ""CLM_results.rds"") : unused argument (path = ""CLM_results.rds"")"
+stripped,CLM_study_labels.R,cleaning,1,error,"Error in file(file, ...) : argument ""file"" is missing, with no default Calls: write_rds"
+stripped,CLM_study_summaries.R,analysis,1,error,"Error in readRDS(con, refhook = refhook) : cannot open the connection Calls: read_rds -> readRDS"
+stripped,CLM_estimate_CATEs.R,analysis,1,error,"Error in readRDS(con, refhook = refhook) : cannot open the connection Calls: read_rds -> readRDS"
+stripped,CLM_f_tests.R,analysis,1,error,"Error in file(file, ...) : argument ""file"" is missing, with no default Calls: write_rds"
+stripped,CLM_figures.R,analysis,1,error,"Error in readRDS(con, refhook = refhook) : cannot open the connection Calls: read_rds -> readRDS"
+stripped,CLM_tables.R,analysis,1,error,"Error in readRDS(con, refhook = refhook) : cannot open the connection Calls: read_rds -> readRDS"
+stripped,CLM_in_text_figures.R,analysis,1,error,"Error in readRDS(con, refhook = refhook) : cannot open the connection Calls: read_rds -> readRDS"
+stripped,CLM_appendix.R,analysis,1,error,"Error in read_rds(path = ""CLM_results.rds"") : unused argument (path = ""CLM_results.rds"")"
